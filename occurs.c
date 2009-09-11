@@ -1,293 +1,257 @@
 /* occurs
  * Counts the number of occurrences of each symbol in a text file
  * Reuben Thomas (rrt@sc3d.org)
- * vv0.1-0.33 (BASIC) 25/1/92-23/11/97
- * v0.4 25/11/97; v0.41 28/11/97; v0.42 18/2/98; v0.43 28/7/99;
- * v0.44 29/7/99; v0.45 27/11/99; v0.50 17/1/00; v0.51 20/1/00;
- * v0.52 23/10/00; v0.53 28/10/00; v0.54 29/10/00; v0.55 7/12/00;
- * v0.56 10/2/01; v0.57 12/3/01; v0.58 30/6/01; v0.59 15/1/05
+ */
 
- * Eric Hutton's (bookman@rmplc.co.uk) comments on the BASIC version
- * caused me to translate it to C and improve it.
-*/
+/* FIXME: Use POSIX regex for symbol matching. */
+/* FIXME: Use gengetopt options-parsing code to eliminate redundancy. */
+/* FIXME: Cope with wide character encodings. */
 
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
 #include <ctype.h>
 #include <limits.h>
 #include <locale.h>
 #include <getopt.h>
+#include "xalloc.h"
+#include "gl_linked_list.h"
 
-/* RRTLib headers */
-#include <rrt/string.h>
-#include <rrt/hash.h>
-#include <rrt/except.h>
-
-
-char *progName= "occurs";
-
-#define DEBUG(x)  if (debug) warn(x);
 
 typedef unsigned char uchar;
 
 uchar letter[UCHAR_MAX];  /* table of flags denoting if the corresponding
-			   character is a letter */
+                           character is a letter */
 
-int counts= FALSE;  /* If true, output sorted by frequency; otherwise in
-                       alphabetic order */
-int freqs= TRUE;    /* If true, show the frequencies */
-int symbol= 2;  /* 0 = a word is any space-delimited sequence
-                   1 = a word is an alphanumeric and underline sequence
-                   2 = a word is an alphabetic sequence; words are lowercased
-                   3 = a word is an SGML tag; words are lowercased */
-int debug= FALSE;   /* If true, print debugging information */
+int counts = false;  /* If true, output sorted by frequency; otherwise in
+                        alphabetic order */
+int freqs = true;    /* If true, show the frequencies */
+int symbol = 2;  /* 0 = any space-delimited sequence
+                    1 = an alphanumeric and underline sequence
+                    2 = an alphabetic sequence; words are lowercased
+                    3 = an SGML tag; words are lowercased */
 
 /* Type to hold word-frequency pairs */
-typedef struct { uchar *word; size_t count; } FreqWord;
+struct freq_word {
+  uchar *word;
+  size_t count;
+};
+typedef struct freq_word *freq_word_t;
 
 
 /* Print help and exit */
-void
+static void
 help(void)
 {
-    printf(
-    "occurs v0.59 (15 Jan 2005) by Reuben Thomas (rrt@sc3d.org)\n"
-    "Counts the number of occurrences of each symbol in a file\n"
-    "\n"
-    "Usage: occurs [options] file...\n"
-    "  In the file list, \'-\' means read from standard input\n"
-    "\n"
-    "Options:\n"
-    "  -c --counts        give output sorted by frequency\n"
-    "  -l --lexical       give output in lexical order [default]\n"
-    "  -f --freqs         show the frequencies [default]\n"
-    "  -n --nofreqs       don't show the frequencies\n"
-    "  -a --any           symbols consist of non-white-space characters\n"
-    "  -i --identifiers   symbols consist of alphanumerics and underscores\n"
-    "  -w --words         symbols consist of letters, and are lowercased "
-"[default]\n"
-    "  -t --tags          symbols are SGML tags\n"
-    "  -d --debug         increase debugging level\n"
-    "  -h -? --help       display this help\n"
-    );
+  fprintf(stderr,
+          /* FIXME: Generate name below */
+          PACKAGE_NAME " " VERSION " by Reuben Thomas (" PACKAGE_BUGREPORT ")\n"
+          "Counts the number of occurrences of each symbol in a file\n"
+          "\n"
+          "Usage: occurs [options] file...\n"
+          "  In the file list, \'-\' means read from standard input\n"
+          "\n"
+          "Options:\n"
+          "  -c --counts        give output sorted by frequency\n"
+          "  -l --lexical       give output in lexical order [default]\n"
+          "  -f --freqs         show the frequencies [default]\n"
+          "  -n --nofreqs       don't show the frequencies\n"
+          "  -a --any           symbols consist of non-white-space characters\n"
+          "  -i --identifiers   symbols consist of alphanumerics and underscores\n"
+          "  -w --words         symbols consist of letters, and are lowercased "
+          "[default]\n"
+          "  -t --tags          symbols are SGML tags\n"
+          "  -h -? --help       display this help\n"
+          );
 
-    exit(EXIT_SUCCESS);
+  exit(EXIT_SUCCESS);
 }
 
 /* Options table */
-struct option longopts[]= {
-    { "counts",      0, NULL, 'c' },
-    { "lexical",     0, NULL, 'l' },
-    { "freqs",       0, NULL, 'f' },
-    { "nofreqs",     0, NULL, 'n' },
-    { "any",         0, NULL, 'a' },
-    { "identifiers", 0, NULL, 'i' },
-    { "words",       0, NULL, 'w' },
-    { "tags",        0, NULL, 't' },
-    { "debug",       0, NULL, 'd' },
-    { "help",        0, NULL, 'h' },
-    { 0, 0, 0, 0 }
+struct option longopts[] = {
+  { "counts",      0, NULL, 'c' },
+  { "lexical",     0, NULL, 'l' },
+  { "freqs",       0, NULL, 'f' },
+  { "nofreqs",     0, NULL, 'n' },
+  { "any",         0, NULL, 'a' },
+  { "identifiers", 0, NULL, 'i' },
+  { "words",       0, NULL, 'w' },
+  { "tags",        0, NULL, 't' },
+  { "help",        0, NULL, 'h' },
+  { 0, 0, 0, 0 }
 };
 
 
 /* Parse the command-line options; return the number of the first non-option
    argument */
-int
+static int
 getopts(int argc, char *argv[])
 {
-    int opt;
+  int opt;
 
-    while ((opt= getopt_long(argc, argv, "clfnaiwtdh", longopts, NULL))
-            != EOF) {
-        switch (opt) {
-            case 'c': counts= TRUE;   break;
-            case 'l': counts= FALSE;  break;
-            case 'f': freqs= TRUE;    break;
-            case 'n': freqs= FALSE;   break;
-            case 'a': symbol= 0;      break;
-            case 'i': symbol= 1;      break;
-            case 'w': symbol= 2;      break;
-            case 't': symbol= 3;      break;
-            case 'd': ++debug;        break;
-            case 'h':
-	    case '?': help();         break;
-        }
+  while ((opt= getopt_long(argc, argv, "clfnaiwtdh", longopts, NULL))
+         != EOF) {
+    switch (opt) {
+    case 'c': counts = true;   break;
+    case 'l': counts = false;  break;
+    case 'f': freqs = true;    break;
+    case 'n': freqs = false;   break;
+    case 'a': symbol = 0;      break;
+    case 'i': symbol = 1;      break;
+    case 'w': symbol = 2;      break;
+    case 't': symbol = 3;      break;
+    case 'h':
+    case '?': help();          break;
     }
+  }
 
-    return optind;
+  return optind;
 }
-
 
 /* Set up the letter[] flags array according to the value of symbol */
-void
-initLetters(void)
+static void
+init_letters(void)
 {
-    int i;
+  unsigned i;
 
-    for (i= 0; i < UCHAR_MAX; i++)
-        switch (symbol) {
-            case 0:  letter[i]= TRUE; break;
-            case 1:  letter[i]= isalnum(i) != 0; break;
-            case 2:
-            case 3:  letter[i]= isalpha(i) != 0; break;
-        }
-    if (symbol == 1) letter['_']= TRUE;
-
-    if (debug > 1) {
-	warn("Character table:");
-	for (i= 0; i < UCHAR_MAX; i++)
-	    if (isalpha(i)) warn("%c, %d : %d", i, i, letter[i]);
+  for (i = 0; i < UCHAR_MAX; i++)
+    switch (symbol) {
+    case 0:
+      letter[i] = true;
+      break;
+    case 1:
+      letter[i] = isalnum(i) != 0;
+      break;
+    case 2:
+    case 3:
+      letter[i] = isalpha(i) != 0;
+      break;
     }
+  if (symbol == 1)
+    letter['_']= true;
 }
-
 
 /* Read a single word */
-uchar
-*getWord(void)
+static uchar *
+get_word(void)
 {
-    uchar c, word[BUFSIZ], *ret;
-    int i;
+  /* FIXME: Remove limit on length of word */
+  uchar c, word[BUFSIZ], *ret;
+  int i;
 
-    do { c= getchar(); } while (!letter[c] && !feof(stdin));
-    if (feof(stdin)) return NULL;
+  do {
+    c = getchar();
+  } while (!letter[c] && !feof(stdin));
+  if (feof(stdin))
+    return NULL;
 
-    i= 0;
-    do {
-        word[i++]= c;
-        c= getchar();
-    } while (letter[c] && !feof(stdin) && i < BUFSIZ);
-    if (i == BUFSIZ) throw("word too long");
-    word[i]= '\0';
+  i = 0;
+  do {
+    word[i++]= c;
+    c = getchar();
+  } while (letter[c] && !feof(stdin) && i < BUFSIZ);
+  if (i == BUFSIZ) {
+    fprintf(stderr, "word too long");
+    exit(1);
+  }
+  word[i]= '\0';
 
-    if (symbol >= 2)
-        for (i = 0; word[i]; i++) word[i]= tolower(word[i]);
+  if (symbol >= 2)
+    for (i = 0; word[i]; i++) word[i]= tolower(word[i]);
 
-    ret= (uchar *)excCalloc(i + 1, sizeof(uchar));
-    strcpy(ret, word);
-    if (debug > 1) fprintf(stderr, "%s ", ret);
-    return ret;
+  ret = (uchar *)xcalloc(i + 1, sizeof(uchar));
+  strcpy(ret, word);
+  return ret;
 }
 
-
-/* Read the file into a hash table */
-size_t
-readWords(HashTable *table)
+/* Compare a freq_word on the word field */
+static int
+wordcmp(const void *keyval, const void *datum)
 {
-    size_t words= 0, *freq;
-    uchar *word;
+  uchar *k = ((freq_word_t)keyval)->word, *d = ((freq_word_t)datum)->word;
 
-    while (!feof(stdin)) {
-        if (symbol == 3) while (getchar() != '<' && !feof(stdin));
-        if (!feof(stdin)) {
-            word= getWord();
-            if (word) {
-                if (freq= (size_t *)hashFind(table, word))
-                    (*freq)++;
-                else {
-                    words++;
-                    freq= excCalloc(1, sizeof(size_t));
-                    *freq= 1;
-                    hashInsert(table, word, freq);
-                }
-            }
+  return strcoll((char *)k, (char *)d);
+}
+
+/* Read the file into a list */
+static size_t
+read_words(gl_list_t list)
+{
+  size_t words = 0;
+  uchar *word;
+  freq_word_t fw;
+
+  while (!feof(stdin)) {
+    if (symbol == 3)
+      while (getchar() != '<' && !feof(stdin))
+        ;
+    if (!feof(stdin)) {
+      if ((word = get_word())) {
+        struct freq_word fw2 = {word, 0};
+        size_t i = gl_sortedlist_indexof(list, wordcmp, &fw2);
+        if (i != (size_t)-1) {
+          fw = (freq_word_t)gl_list_get_at(list, i);
+          fw->count++;
+        } else {
+          words++;
+          fw = XZALLOC(struct freq_word);
+          fw->word = word;
+          fw->count = 1;
+          gl_sortedlist_add(list, wordcmp, fw);
         }
+      }
     }
+  }
 
-    return words;
+  return words;
 }
-
-
-/* Turn a hash table into a linear array */
-FreqWord *
-flatten(HashTable *table, size_t words)
-{
-    size_t i, j;
-    HashNode *p, *q;
-    FreqWord (*array)[]= excCalloc(words, sizeof(FreqWord));
-
-    for (i= 0, j= 0; i < table->size; i++)
-        for (p= table->thread[i]; p != NULL; p= q, j++) {
-            (*array)[j].word= p->key;
-            (*array)[j].count= *(size_t *)p->body;
-            q= p->next;
-            free(p->body);
-            free(p);
-        }
-    free(table->thread);
-    free(table);
-
-    return *array;
-}
-
-
-/* Compare a FreqWord on the count field */
-int
-countCmp(const void *keyval, const void *datum)
-{
-    size_t k= ((FreqWord *)keyval)->count, d= ((FreqWord *)datum)->count;
-
-    return (k < d ? 1 : (k == d ? 0 : -1));
-}
-
-/* Compare a FreqWord on the word field */
-int
-wordCmp(const void *keyval, const void *datum)
-{
-    uchar *k= ((FreqWord *)keyval)->word, *d= ((FreqWord *)datum)->word;
-
-    return strcoll((char *)k, (char *)d);
-}
-
 
 /* Process a file */
-void
+static void
 process(char *name)
 {
-    size_t words, i;
-    HashTable *table= hashNew(4096, hashStrHash, hashStrcmp);
-    FreqWord *array;
+  size_t words, i;
+  gl_list_t list = gl_list_create_empty(GL_LINKED_LIST,
+                                        NULL, NULL, NULL, false);
 
-    DEBUG("Reading words");
-    words= readWords(table);
-    DEBUG("Flattening table");
-    array= flatten(table, words);
-    DEBUG("Sorting");
-    qsort((void *)array, words, sizeof(FreqWord),
-        counts ? countCmp : wordCmp);
+  words = read_words(list);
 
-    warn("%s: %lu words", name, words);
-    for (i= 0; i < words; i++) {
-        printf("%s", array[i].word);
-        if (freqs) printf(" %d", array[i].count);
-        putchar('\n');
-    }
+  fprintf(stderr, "%s: %lu words\n", name, (long unsigned)words);
+  for (i = 0; i < words; i++) {
+    freq_word_t fw = (freq_word_t)gl_list_get_at(list, i);
+    printf("%s", fw->word);
+    if (freqs)
+      printf(" %d", fw->count);
+    putchar('\n');
+  }
 }
-
 
 int
 main(int argc, char *argv[])
 {
-    char *loc= setlocale(LC_ALL, "");
-    int i= getopts(argc, argv);
+  char *loc = setlocale(LC_ALL, "");
+  int i = getopts(argc, argv);
 
-    excInit();
-    if (debug) warn("Locale: %s\n", loc);
-    initLetters();
+  init_letters();
 
-    if (i < argc)
-        for (; i < argc; i++) {
-            if (strEq(argv[i], "-")) process("standard input");
-            else {
-                if (!freopen(argv[i], "r", stdin))
-                    throw("can't open %s", argv[i]);
-                process(argv[i]);
-            }
-            fclose(stdin);
-            if (i < argc - 1) putchar('\n');
+  if (i < argc)
+    for (; i < argc; i++) {
+      if (strcmp(argv[i], "-") != 0) {
+        if (!freopen(argv[i], "r", stdin)) {
+          fprintf(stderr, "cannot open `%s'", argv[i]);
+          exit(1);
         }
-    else
-        help();
+      }
+      process(argv[i]);
+      fclose(stdin);
+      if (i < argc - 1)
+        putchar('\n');
+    }
+  else
+    help();
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
