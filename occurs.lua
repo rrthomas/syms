@@ -81,7 +81,7 @@ end
 if getopt.opt.left then
   leftDel = getopt.opt.left
 end
-if getopt.opt.right  then
+if getopt.opt.right then
   rightDel = getopt.opt.right
 end
 -- FIXME: checkRegex (symbolPat, leftDel, rightDel)
