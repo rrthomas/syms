@@ -1,13 +1,13 @@
 #!/usr/bin/env lua
 prog = {
   name = "occurs",
-  banner = "occurs 0.83 (25 Sep 2008) by Reuben Thomas <rrt@sc3d.org>",
+  banner = "occurs 0.84 (21 May 2011) by Reuben Thomas <rrt@sc3d.org>",
   purpose = "Count the occurrences of each symbol in a file",
   notes = "The default symbol type is words (-s \"%a+\"); other " ..
     "useful settings include:\n\n" ..
     "  non-white-space characters: -s \"%S+\"\n" ..
     "  alphanumerics and underscores: -s \"[%w_]+\"\n" ..
-    "  SGML tags: -s \"[a-zA-Z]\" -l \"\<\" -r \"[%s\\>]\""
+    "  XML tags: -s \"[a-zA-Z_:][a-zA-Z_:.0-9-]*\" -l \"\<\" -r \"[%s\\>]\""
 }
 
 -- FIXME: rewrite in Python
