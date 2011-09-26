@@ -66,8 +66,8 @@ init_letters(void)
 static unsigned char *
 get_word(void)
 {
-  // FIXME: Remove limit on length of word
-  unsigned char c, word[BUFSIZ];
+  size_t len = BUFSIZ;
+  unsigned char c, *word = xmalloc(len);
 
   do {
     c = getchar();
@@ -75,23 +75,21 @@ get_word(void)
   if (feof(stdin))
     return NULL;
 
-  int i = 0;
+  size_t i = 0;
   do {
     word[i++]= c;
     c = getchar();
-  } while (letter[c] && !feof(stdin) && i < BUFSIZ);
-  if (i == BUFSIZ) {
-    fprintf(stderr, "word too long");
-    exit(1);
-  }
+    if (i == len) {
+      len += BUFSIZ;
+      word = xrealloc(word, len);
+    }
+  } while (letter[c] && !feof(stdin));
   word[i]= '\0';
 
   if (symbol >= 2)
     for (i = 0; word[i]; i++) word[i]= tolower(word[i]);
 
-  unsigned char *ret = (unsigned char *)xcalloc(i + 1, sizeof(unsigned char));
-  strcpy(ret, word);
-  return ret;
+  return xrealloc(word, (i + 1) * sizeof(unsigned char));
 }
 
 // Compare a freq_word on the word field
