@@ -3,8 +3,8 @@
  * Reuben Thomas (rrt@sc3d.org)
  */
 
-/* FIXME: Use POSIX regex for symbol matching. */
-/* FIXME: Cope with wide character encodings. */
+// FIXME: Use POSIX regex for symbol matching.
+// FIXME: Cope with wide character encodings.
 
 #include "config.h"
 
@@ -23,34 +23,29 @@
 #include "cmdline.h"
 
 
-typedef unsigned char uchar;
+unsigned char letter[UCHAR_MAX];  // table of flags denoting if the corresponding
+                          // character is a letter
 
-uchar letter[UCHAR_MAX];  /* table of flags denoting if the corresponding
-                           character is a letter */
+int counts = false;  // If true, output sorted by frequency; otherwise in
+                     // alphabetic order
+int freqs = true;    // If true, show the frequencies
+int symbol = 2;  // 0 = any space-delimited sequence
+                 // 1 = an alphanumeric and underline sequence
+                 // 2 = an alphabetic sequence; words are lowercased
+                 // 3 = an SGML tag; words are lowercased
 
-int counts = false;  /* If true, output sorted by frequency; otherwise in
-                        alphabetic order */
-int freqs = true;    /* If true, show the frequencies */
-int symbol = 2;  /* 0 = any space-delimited sequence
-                    1 = an alphanumeric and underline sequence
-                    2 = an alphabetic sequence; words are lowercased
-                    3 = an SGML tag; words are lowercased */
-
-/* Type to hold word-frequency pairs */
-struct freq_word {
-  uchar *word;
+// Type to hold word-frequency pairs
+typedef struct freq_word {
+  unsigned char *word;
   size_t count;
-};
-typedef struct freq_word *freq_word_t;
+} *freq_word_t;
 
 
-/* Set up the letter[] flags array according to the value of symbol */
+// Set up the letter[] flags array according to the value of symbol
 static void
 init_letters(void)
 {
-  unsigned i;
-
-  for (i = 0; i < UCHAR_MAX; i++)
+  for (unsigned i = 0; i < UCHAR_MAX; i++)
     switch (symbol) {
     case 0:
       letter[i] = true;
@@ -67,13 +62,12 @@ init_letters(void)
     letter['_']= true;
 }
 
-/* Read a single word */
-static uchar *
+// Read a single word
+static unsigned char *
 get_word(void)
 {
-  /* FIXME: Remove limit on length of word */
-  uchar c, word[BUFSIZ], *ret;
-  int i;
+  // FIXME: Remove limit on length of word
+  unsigned char c, word[BUFSIZ];
 
   do {
     c = getchar();
@@ -81,7 +75,7 @@ get_word(void)
   if (feof(stdin))
     return NULL;
 
-  i = 0;
+  int i = 0;
   do {
     word[i++]= c;
     c = getchar();
@@ -95,35 +89,35 @@ get_word(void)
   if (symbol >= 2)
     for (i = 0; word[i]; i++) word[i]= tolower(word[i]);
 
-  ret = (uchar *)xcalloc(i + 1, sizeof(uchar));
+  unsigned char *ret = (unsigned char *)xcalloc(i + 1, sizeof(unsigned char));
   strcpy(ret, word);
   return ret;
 }
 
-/* Compare a freq_word on the word field */
+// Compare a freq_word on the word field
 static int
 wordcmp(const void *keyval, const void *datum)
 {
-  uchar *k = ((freq_word_t)keyval)->word, *d = ((freq_word_t)datum)->word;
+  unsigned char *k = ((freq_word_t)keyval)->word, *d = ((freq_word_t)datum)->word;
 
   return strcoll((char *)k, (char *)d);
 }
 
-/* Read the file into a list */
+// Read the file into a list
 static size_t
 read_words(gl_list_t list)
 {
   size_t words = 0;
-  uchar *word;
-  freq_word_t fw;
 
   while (!feof(stdin)) {
     if (symbol == 3)
       while (getchar() != '<' && !feof(stdin))
         ;
     if (!feof(stdin)) {
+      unsigned char *word;
       if ((word = get_word())) {
         struct freq_word fw2 = {word, 0};
+        freq_word_t fw;
         size_t i = gl_sortedlist_indexof(list, wordcmp, &fw2);
         if (i != (size_t)-1) {
           fw = (freq_word_t)gl_list_get_at(list, i);
@@ -142,18 +136,16 @@ read_words(gl_list_t list)
   return words;
 }
 
-/* Process a file */
+// Process a file
 static void
 process(char *name)
 {
-  size_t words, i;
   gl_list_t list = gl_list_create_empty(GL_LINKED_LIST,
                                         NULL, NULL, NULL, false);
-
-  words = read_words(list);
+  size_t words = read_words(list);
 
   fprintf(stderr, "%s: %lu words\n", name, (long unsigned)words);
-  for (i = 0; i < words; i++) {
+  for (size_t i = 0; i < words; i++) {
     freq_word_t fw = (freq_word_t)gl_list_get_at(list, i);
     printf("%s", fw->word);
     if (freqs)
@@ -165,10 +157,9 @@ process(char *name)
 int
 main(int argc, char *argv[])
 {
-  struct gengetopt_args_info args_info;
-  char *loc = setlocale(LC_ALL, "");
-  unsigned i;
+  setlocale(LC_ALL, "");
 
+  struct gengetopt_args_info args_info;
   if (cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
   if (args_info.help_given || argc == 1)
@@ -178,7 +169,7 @@ main(int argc, char *argv[])
 
   init_letters();
 
-  for (i = 0; i < args_info.inputs_num; i++) {
+  for (unsigned i = 0; i < args_info.inputs_num; i++) {
     if (strcmp(argv[i], "-") != 0) {
       if (!freopen(argv[i], "r", stdin)) {
         fprintf(stderr, "cannot open `%s'", argv[i]);

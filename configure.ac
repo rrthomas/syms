@@ -8,7 +8,7 @@ AM_INIT_AUTOMAKE([-Wall -Werror std-options])
 
 dnl Set up C compiler
 AC_GNU_SOURCE
-AC_PROG_CC
+AC_PROG_CC_C99
 if test "$GCC" = "yes"; then
   CFLAGS="$CFLAGS -W -Wmissing-prototypes -Wstrict-prototypes -D_FORTIFY_SOURCE=2"
 fi
