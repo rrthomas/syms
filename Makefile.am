@@ -16,6 +16,8 @@ release: distcheck
 	woger gnu,freshmeat $(PACKAGE) "$(PACKAGE_NAME)" $(VERSION) "the tiny Emacs clone" release-notes && \
 	rm -f release-notes
 
+CLOC = cloc --force-lang="perl",ggo
+
 AM_CPPFLAGS = -I$(top_builddir)/lib -I$(top_srcdir)/lib
 LDADD = $(top_builddir)/lib/libgnu.a
 
@@ -23,9 +25,12 @@ bin_PROGRAMS = occurs
 
 occurs_LDADD = $(LDADD) $(LIBOBJS)
 
-occurs_SOURCES = occurs.c
+occurs_SOURCES = occurs.c cmdline.c cmdline.h
 
-EXTAR_DIST = m4/gnulib-cache.m4
+cmdline.c: occurs.ggo
+	gengetopt < occurs.ggo --unamed-opts
+
+EXTRA_DIST = occurs.ggo m4/gnulib-cache.m4
 
 loc:
-	cloc --no3 $(occurs_SOURCES) Makefile.am configure.ac
+	$(CLOC) --no3 occurs.c occurs.ggo Makefile.am configure.ac

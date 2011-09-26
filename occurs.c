@@ -4,7 +4,6 @@
  */
 
 /* FIXME: Use POSIX regex for symbol matching. */
-/* FIXME: Use gengetopt options-parsing code to eliminate redundancy. */
 /* FIXME: Cope with wide character encodings. */
 
 #include "config.h"
@@ -18,7 +17,10 @@
 #include <locale.h>
 #include <getopt.h>
 #include "xalloc.h"
+#include "gl_xlist.h"
 #include "gl_linked_list.h"
+
+#include "cmdline.h"
 
 
 typedef unsigned char uchar;
@@ -41,75 +43,6 @@ struct freq_word {
 };
 typedef struct freq_word *freq_word_t;
 
-
-/* Print help and exit */
-static void
-help(void)
-{
-  fprintf(stderr,
-          /* FIXME: Generate name below */
-          PACKAGE_NAME " " VERSION " by Reuben Thomas (" PACKAGE_BUGREPORT ")\n"
-          "Counts the number of occurrences of each symbol in a file\n"
-          "\n"
-          "Usage: occurs [options] file...\n"
-          "  In the file list, \'-\' means read from standard input\n"
-          "\n"
-          "Options:\n"
-          "  -c --counts        give output sorted by frequency\n"
-          "  -l --lexical       give output in lexical order [default]\n"
-          "  -f --freqs         show the frequencies [default]\n"
-          "  -n --nofreqs       don't show the frequencies\n"
-          "  -a --any           symbols consist of non-white-space characters\n"
-          "  -i --identifiers   symbols consist of alphanumerics and underscores\n"
-          "  -w --words         symbols consist of letters, and are lowercased "
-          "[default]\n"
-          "  -t --tags          symbols are SGML tags\n"
-          "  -h -? --help       display this help\n"
-          );
-
-  exit(EXIT_SUCCESS);
-}
-
-/* Options table */
-struct option longopts[] = {
-  { "counts",      0, NULL, 'c' },
-  { "lexical",     0, NULL, 'l' },
-  { "freqs",       0, NULL, 'f' },
-  { "nofreqs",     0, NULL, 'n' },
-  { "any",         0, NULL, 'a' },
-  { "identifiers", 0, NULL, 'i' },
-  { "words",       0, NULL, 'w' },
-  { "tags",        0, NULL, 't' },
-  { "help",        0, NULL, 'h' },
-  { 0, 0, 0, 0 }
-};
-
-
-/* Parse the command-line options; return the number of the first non-option
-   argument */
-static int
-getopts(int argc, char *argv[])
-{
-  int opt;
-
-  while ((opt= getopt_long(argc, argv, "clfnaiwtdh", longopts, NULL))
-         != EOF) {
-    switch (opt) {
-    case 'c': counts = true;   break;
-    case 'l': counts = false;  break;
-    case 'f': freqs = true;    break;
-    case 'n': freqs = false;   break;
-    case 'a': symbol = 0;      break;
-    case 'i': symbol = 1;      break;
-    case 'w': symbol = 2;      break;
-    case 't': symbol = 3;      break;
-    case 'h':
-    case '?': help();          break;
-    }
-  }
-
-  return optind;
-}
 
 /* Set up the letter[] flags array according to the value of symbol */
 static void
@@ -224,7 +157,7 @@ process(char *name)
     freq_word_t fw = (freq_word_t)gl_list_get_at(list, i);
     printf("%s", fw->word);
     if (freqs)
-      printf(" %d", fw->count);
+      printf(" %zd", fw->count);
     putchar('\n');
   }
 }
@@ -232,26 +165,31 @@ process(char *name)
 int
 main(int argc, char *argv[])
 {
+  struct gengetopt_args_info args_info;
   char *loc = setlocale(LC_ALL, "");
-  int i = getopts(argc, argv);
+  unsigned i;
+
+  if (cmdline_parser(argc, argv, &args_info) != 0)
+    exit(1);
+  if (args_info.help_given || argc == 1)
+    cmdline_parser_print_help();
+  if (args_info.version_given)
+    cmdline_parser_print_version();
 
   init_letters();
 
-  if (i < argc)
-    for (; i < argc; i++) {
-      if (strcmp(argv[i], "-") != 0) {
-        if (!freopen(argv[i], "r", stdin)) {
-          fprintf(stderr, "cannot open `%s'", argv[i]);
-          exit(1);
-        }
+  for (i = 0; i < args_info.inputs_num; i++) {
+    if (strcmp(argv[i], "-") != 0) {
+      if (!freopen(argv[i], "r", stdin)) {
+        fprintf(stderr, "cannot open `%s'", argv[i]);
+        exit(1);
       }
-      process(argv[i]);
-      fclose(stdin);
-      if (i < argc - 1)
-        putchar('\n');
     }
-  else
-    help();
+    process(argv[i]);
+    fclose(stdin);
+    if (i < (unsigned)argc - 1)
+      putchar('\n');
+  }
 
   return EXIT_SUCCESS;
 }
