@@ -106,3 +106,6 @@
 /vasnprintf.h
 /vasprintf.c
 /xsize.h
+/getline.c
+/getdelim.c
+/realloc.c

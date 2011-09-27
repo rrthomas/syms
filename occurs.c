@@ -1,7 +1,7 @@
-/* occurs
- * Counts the number of occurrences of each symbol in a text file
- * Reuben Thomas (rrt@sc3d.org)
- */
+// occurs
+// Counts the number of occurrences of each symbol in a text file
+// Reuben Thomas (rrt@sc3d.org)
+
 
 // FIXME: Cope with wide character encodings.
 
@@ -64,7 +64,7 @@ symboleq (const void *v, const void *w)
 
 static int (*comparer)(const void *s1, const void *s2);
 
-static const char *
+static char *
 get_symbol(const char *s, size_t *n)
 {
   regmatch_t match[1];
@@ -89,20 +89,22 @@ read_symbols(Hash_table *hash)
   ssize_t len;
   char *line = NULL;
 
-  while (getline(&line, &len, stdin) != -1) {
-    const char *symbol = NULL;
-    for (size_t n = 0; symbol = get_symbol(line, &n); line += n) {
+  for (char *line = NULL; getline(&line, &len, stdin) != -1; line = NULL) {
+    char *symbol = NULL, *p = line;
+    for (size_t n = 0; symbol = get_symbol(p, &n); p += n) {
       struct freq_symbol fw2 = {symbol, 0};
       freq_symbol_t fw = hash_lookup(hash, &fw2);
-      if (fw)
+      if (fw) {
         fw->count++;
-      else {
+        free(symbol);
+      } else {
         symbols++;
         fw = XZALLOC(struct freq_symbol);
         *fw = (struct freq_symbol) {.symbol = symbol, .count = 1};
         assert(hash_insert(hash, fw));
       }
     }
+    free(line);
   }
 
   return symbols;
@@ -120,13 +122,13 @@ process(const char *name)
   gl_list_t list = gl_list_create_empty(GL_LINKED_LIST,
                                         NULL, NULL, NULL, false);
   for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw))
-    gl_sortedlist_add(list, symbolcmp, fw);
+    args_info.sort_given ? gl_sortedlist_add(list, comparer, fw) : gl_list_add_last(list, fw);
 
   // Print out symbol data
   if (!args_info.nocount_given)
     fprintf(stderr, "%s: %lu symbols\n", name, (long unsigned)symbols);
-  for (size_t i = 0; i < symbols; i++) {
-    freq_symbol_t fw = (freq_symbol_t)gl_list_get_at(list, i);
+  freq_symbol_t fw;
+  for (gl_list_iterator_t i = gl_list_iterator(list); gl_list_iterator_next(&i, (const void **)(&fw), NULL); ) {
     printf("%s", fw->symbol);
     if (!args_info.nocount_given)
       printf(" %zd", fw->count);
