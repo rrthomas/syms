@@ -67,3 +67,5 @@
 /vasnprintf.m4
 /vasprintf.m4
 /xsize.m4
+/manywarnings.m4
+/warnings.m4
