@@ -87,12 +87,11 @@ func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
 	}
 
 	// Sort symbols
-	if sortMeth != nil {
-		switch *sortMeth {
-		case "lexical": sort.Strings(sl.symbol)
-		case "frequency": sort.Sort(sl)
-		default: die(fmt.Sprintf("no such sort method `%s'\n", *sortMeth))
-		}
+	switch *sortMeth {
+	case "": // do nothing
+	case "lexical": sort.Strings(sl.symbol)
+	case "frequency": sort.Sort(sl)
+	default: die(fmt.Sprintf("no such sort method `%s'\n", *sortMeth))
 	}
 
 	// Print out symbol data
@@ -118,12 +117,13 @@ func main() {
 	pattern.MatchString("foo")
 
 	// Process input
-	if flag.NArg() == 0 { occurs(os.Stdin, "-", pattern) }
-	else {
+	if flag.NArg() == 0 {
+		occurs(os.Stdin, "-", pattern)
+	} else {
 		for i := 0; i < flag.NArg(); i++ {
 			var h io.Reader;
 			f := flag.Arg(i)
-			if fre != "-" {
+			if f != "-" {
 				var err os.Error
 				h, err = os.Open(f)
 				if err != nil { dieWithError(err) }
