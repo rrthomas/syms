@@ -3,150 +3,132 @@
  * Reuben Thomas (rrt@sc3d.org)
  */
 
-// FIXME: Use POSIX regex for symbol matching.
 // FIXME: Cope with wide character encodings.
 
-#include "config.h"
+#include <config.h>
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
-#include <limits.h>
 #include <locale.h>
 #include <getopt.h>
+#include <regex.h>
 #include "xalloc.h"
+#include "hash.h"
 #include "gl_xlist.h"
 #include "gl_linked_list.h"
 
 #include "cmdline.h"
 
 
-unsigned char letter[UCHAR_MAX];  // table of flags denoting if the corresponding
-                          // character is a letter
+static regex_t symbol_re; // regex object corresponding to the regexs above
 
-int counts = false;  // If true, output sorted by frequency; otherwise in
-                     // alphabetic order
-int freqs = true;    // If true, show the frequencies
-int symbol = 2;  // 0 = any space-delimited sequence
-                 // 1 = an alphanumeric and underline sequence
-                 // 2 = an alphabetic sequence; words are lowercased
-                 // 3 = an SGML tag; words are lowercased
-
-// Type to hold word-frequency pairs
-typedef struct freq_word {
-  unsigned char *word;
+// Type to hold symbol-frequency pairs
+typedef struct freq_symbol {
+  const char *symbol;
   size_t count;
-} *freq_word_t;
+} *freq_symbol_t;
 
+struct gengetopt_args_info args_info;
 
-// Set up the letter[] flags array according to the value of symbol
-static void
-init_letters(void)
-{
-  for (unsigned i = 0; i < UCHAR_MAX; i++)
-    switch (symbol) {
-    case 0:
-      letter[i] = true;
-      break;
-    case 1:
-      letter[i] = isalnum(i) != 0;
-      break;
-    case 2:
-    case 3:
-      letter[i] = isalpha(i) != 0;
-      break;
-    }
-  if (symbol == 1)
-    letter['_']= true;
-}
-
-// Read a single word
-static unsigned char *
-get_word(void)
-{
-  size_t len = BUFSIZ;
-  unsigned char c, *word = xmalloc(len);
-
-  do {
-    c = getchar();
-  } while (!letter[c] && !feof(stdin));
-  if (feof(stdin))
-    return NULL;
-
-  size_t i = 0;
-  do {
-    word[i++]= c;
-    c = getchar();
-    if (i == len) {
-      len += BUFSIZ;
-      word = xrealloc(word, len);
-    }
-  } while (letter[c] && !feof(stdin));
-  word[i]= '\0';
-
-  if (symbol >= 2)
-    for (i = 0; word[i]; i++) word[i]= tolower(word[i]);
-
-  return xrealloc(word, (i + 1) * sizeof(unsigned char));
-}
-
-// Compare a freq_word on the word field
+// Compare a freq_symbol on the symbol field
 static int
-wordcmp(const void *keyval, const void *datum)
+symbolcmp(const void *s1, const void *s2)
 {
-  unsigned char *k = ((freq_word_t)keyval)->word, *d = ((freq_word_t)datum)->word;
+  const char *s1s = ((freq_symbol_t)s1)->symbol, *s2s = ((freq_symbol_t)s2)->symbol;
+  return strcoll((const char *)s1s, (const char *)s2s);
+}
 
-  return strcoll((char *)k, (char *)d);
+// Compare a freq_symbol on the frequency field
+static int
+freqcmp(const void *s1, const void *s2)
+{
+  size_t s1c = ((freq_symbol_t)s1)->count, s2c = ((freq_symbol_t)s2)->count;
+  return s1c < s2c ? -1 : (s1c == s2c ? 0 : 1);
+}
+
+static size_t
+symbolhash(const void *v, size_t n)
+{
+  return hash_string(((freq_symbol_t) v)->symbol, n);
+}
+
+static bool
+symboleq (const void *v, const void *w)
+{
+  return strcmp(((freq_symbol_t) v)->symbol, ((freq_symbol_t) w)->symbol) == 0;
+}
+
+static int (*comparer)(const void *s1, const void *s2);
+
+static const char *
+get_symbol(const char *s, size_t *n)
+{
+  regmatch_t match[1];
+  if (regexec(&symbol_re, s, 1, match, 0) != 0)
+    return NULL;
+  *n = match[0].rm_eo;
+  char *w = xmalloc(*n + 1);
+  size_t len = *n - match[0].rm_so;
+  strncpy(w, s + match[0].rm_so, len);
+  w[len] = '\0';
+  if (args_info.lower_given)
+    for (size_t i = 0; i < len; i++)
+      w[i] = tolower(w[i]);
+  return w;
 }
 
 // Read the file into a list
 static size_t
-read_words(gl_list_t list)
+read_symbols(Hash_table *hash)
 {
-  size_t words = 0;
+  size_t symbols = 0;
+  ssize_t len;
+  char *line = NULL;
 
-  while (!feof(stdin)) {
-    if (symbol == 3)
-      while (getchar() != '<' && !feof(stdin))
-        ;
-    if (!feof(stdin)) {
-      unsigned char *word;
-      if ((word = get_word())) {
-        struct freq_word fw2 = {word, 0};
-        freq_word_t fw;
-        size_t i = gl_sortedlist_indexof(list, wordcmp, &fw2);
-        if (i != (size_t)-1) {
-          fw = (freq_word_t)gl_list_get_at(list, i);
-          fw->count++;
-        } else {
-          words++;
-          fw = XZALLOC(struct freq_word);
-          fw->word = word;
-          fw->count = 1;
-          gl_sortedlist_add(list, wordcmp, fw);
-        }
+  while (getline(&line, &len, stdin) != -1) {
+    const char *symbol = NULL;
+    for (size_t n = 0; symbol = get_symbol(line, &n); line += n) {
+      struct freq_symbol fw2 = {symbol, 0};
+      freq_symbol_t fw = hash_lookup(hash, &fw2);
+      if (fw)
+        fw->count++;
+      else {
+        symbols++;
+        fw = XZALLOC(struct freq_symbol);
+        *fw = (struct freq_symbol) {.symbol = symbol, .count = 1};
+        assert(hash_insert(hash, fw));
       }
     }
   }
 
-  return words;
+  return symbols;
 }
 
 // Process a file
 static void
-process(char *name)
+process(const char *name)
 {
+  // Read file into symbol table
+  Hash_table *hash = hash_initialize(256, NULL, symbolhash, symboleq, NULL);
+  size_t symbols = read_symbols(hash);
+
+  // Flatten and sort symbol table
   gl_list_t list = gl_list_create_empty(GL_LINKED_LIST,
                                         NULL, NULL, NULL, false);
-  size_t words = read_words(list);
+  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw))
+    gl_sortedlist_add(list, symbolcmp, fw);
 
-  fprintf(stderr, "%s: %lu words\n", name, (long unsigned)words);
-  for (size_t i = 0; i < words; i++) {
-    freq_word_t fw = (freq_word_t)gl_list_get_at(list, i);
-    printf("%s", fw->word);
-    if (freqs)
+  // Print out symbol data
+  if (!args_info.nocount_given)
+    fprintf(stderr, "%s: %lu symbols\n", name, (long unsigned)symbols);
+  for (size_t i = 0; i < symbols; i++) {
+    freq_symbol_t fw = (freq_symbol_t)gl_list_get_at(list, i);
+    printf("%s", fw->symbol);
+    if (!args_info.nocount_given)
       printf(" %zd", fw->count);
     putchar('\n');
   }
@@ -157,28 +139,49 @@ main(int argc, char *argv[])
 {
   setlocale(LC_ALL, "");
 
-  struct gengetopt_args_info args_info;
+  // Process command-line options
   if (cmdline_parser(argc, argv, &args_info) != 0)
     exit(1);
-  if (args_info.help_given || argc == 1)
+  if (args_info.help_given)
     cmdline_parser_print_help();
   if (args_info.version_given)
     cmdline_parser_print_version();
 
-  init_letters();
-
-  for (unsigned i = 0; i < args_info.inputs_num; i++) {
-    if (strcmp(argv[i], "-") != 0) {
-      if (!freopen(argv[i], "r", stdin)) {
-        fprintf(stderr, "cannot open `%s'", argv[i]);
-        exit(1);
-      }
-    }
-    process(argv[i]);
-    fclose(stdin);
-    if (i < (unsigned)argc - 1)
-      putchar('\n');
+  // Set sort order
+  if (args_info.sort_given) {
+    if (strcmp(args_info.sort_arg, "lexical") == 0)
+      comparer = symbolcmp;
+    else if (strcmp(args_info.sort_arg, "frequency") == 0)
+      comparer = freqcmp;
   }
+
+  // Compile regex
+  char *s;
+  assert(asprintf(&s, "%s(%s)%s", args_info.left_arg, args_info.symbol_arg, args_info.right_arg) > 0);
+  int err = regcomp(&symbol_re, s, REG_EXTENDED);
+  if (err != 0) {
+    size_t errlen = regerror(err, &symbol_re, NULL, 0);
+    char *errbuf = xmalloc(errlen);
+    regerror(err, &symbol_re, errbuf, errlen);
+    fprintf(stderr, PACKAGE ": %s\n", errbuf);
+  }
+
+  // Process input
+  if (args_info.inputs_num == 0)
+    process("-");
+  else
+    for (unsigned i = 0; i < args_info.inputs_num; i++) {
+      if (strcmp(args_info.inputs[i], "-") != 0) {
+        if (!freopen(args_info.inputs[i], "r", stdin)) {
+          fprintf(stderr, PACKAGE ": cannot open `%s'\n", args_info.inputs[i]);
+          exit(1);
+        }
+      }
+      process(args_info.inputs[i]);
+      fclose(stdin);
+      if (i < (unsigned)args_info.inputs_num - 1)
+        putchar('\n');
+    }
 
   return EXIT_SUCCESS;
 }

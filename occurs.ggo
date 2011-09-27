@@ -3,13 +3,9 @@ purpose "Counts the number of occurrences of each symbol in a file"
 usage " [OPTION]... [FILE]...\n\
   In the file list, `-' means read from standard input"
 
-option "counts"         c "sort output by frequency"                            flag off
-option "lexical"        l "sort output in lexical order"                        flag on
-
-option "freqs"          f "show the frequencies"                                flag on
-option "nofreqs"        n "don't show the frequencies"                          flag off
-
-option "any"            a "symbols consist of non-white-space characters"       flag off
-option "identifiers"    i "symbols consist of alphanumerics and underscores"    flag off
-option "words"          w "symbols consist of letters, lowercased"              flag on
-option "tags"           t "symbols consist of SGML tags"                        flag off
+option "sort"       S "sort by given method (one of `lexical', `frequency')" string optional
+option "nocount"    n "don't show the frequencies or total"     flag off
+option "symbol"     s "symbols are given by REGEXP"             string typestr="regexp" optional default="[[:alpha:]]+"
+option "left"       l "symbols must be preceded by REGEXP"      string typestr="regexp" optional default=""
+option "right"      r "symbols must be followed by REGEXP"      string typestr="regexp" optional default=""
+option "lower"      L "symbols are converted to lower case"     flag off
