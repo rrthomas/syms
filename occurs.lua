@@ -17,7 +17,7 @@ require "std"
 
 
 -- Process a file
-function occurs (_, number)
+function occurs (file, number)
   local symbol, freq = {}, {}
   for line in io.lines () do
     string.gsub (line, leftDel .. "(" .. symbolPat .. ")" .. rightDel,
@@ -42,7 +42,7 @@ function occurs (_, number)
                 end)
   end
   if not getopt.opt.nocount then
-    io.stderr:write (tostring (#symbol) .. " symbols\n")
+    io.stderr:write (file .. ": " .. tostring (#symbol) .. " symbols\n")
   end
   for s in list.elems (symbol) do
     io.write (s)
