@@ -2,7 +2,7 @@
 prog = {
   name = "occurs",
   banner = "occurs 0.85 (27 Sep 2011) by Reuben Thomas <rrt@sc3d.org>",
-  purpose = "Count the occurrences of each symbol in a file",
+  purpose = "Count the occurrences of each symbol in a file.",
   notes = "The default symbol type is words (-s \"[[:alpha:]]+\"); other useful settings\n" ..
     "include:\n\n" ..
     "  non-white-space characters: -s \"[^[:space:]]+\"\n" ..
@@ -40,6 +40,9 @@ function occurs (file, number)
                 function (a, b)
                   return freq[a] > freq[b]
                 end)
+  elseif getopt.opt.sort then
+    io.stderr:write (prog.name .. ": no such sort method `" .. tostring (getopt.opt.sort) .. "'\n")
+    os.exit(1)
   end
   if not getopt.opt.nocount then
     io.stderr:write (file .. ": " .. tostring (#symbol) .. " symbols\n")
@@ -75,10 +78,10 @@ local leftDel = getopt.opt.left or ""
 local rightDel = getopt.opt.right or ""
 
 -- Compile symbol-matching regexp
-local err
-pattern, err = rex_posix.new (leftDel .. "(" .. symbolPat .. ")" .. rightDel)
-if err then
-  io.stderr:write (prog.name .. ": " .. err)
+local ok
+ok, pattern = pcall (rex_posix.new, leftDel .. "(" .. symbolPat .. ")" .. rightDel)
+if not ok then
+  io.stderr:write (prog.name .. ": " .. pattern .. "\n")
   os.exit (1)
 end
 
