@@ -1,5 +1,5 @@
 # gengetopt for occurs
-purpose "Counts the number of occurrences of each symbol in a file"
+purpose "Count the number of occurrences of each symbol in a file"
 usage " [OPTION]... [FILE]...\n\
   In the file list, `-' means read from standard input"
 
@@ -9,3 +9,10 @@ option "symbol"     s "symbols are given by REGEXP"             string typestr="
 option "left"       l "symbols must be preceded by REGEXP"      string typestr="regexp" optional default=""
 option "right"      r "symbols must be followed by REGEXP"      string typestr="regexp" optional default=""
 option "lower"      L "symbols are converted to lower case"     flag off
+
+text "\n\
+The default symbol type is words (-s \"[[:alpha:]]+\"); other useful settings include:\n\
+\n\
+  non-white-space characters: -s \"[^[:space:]]+\"\n\
+  alphanumerics and underscores: -s \"[[:alnum:]_]+\"\n\
+  XML tags: -s \"[a-zA-Z_:][a-zA-Z_:.0-9-]*\" -l \"<\" -r \"[[:space:]>]\""
