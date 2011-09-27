@@ -17,7 +17,7 @@ occurs_SOURCES = occurs.c cmdline.c cmdline.h
 cmdline.c: occurs.ggo
 	gengetopt < occurs.ggo --unamed-opts
 
-EXTRA_DIST = occurs.ggo m4/gnulib-cache.m4 occurs.lua occurs.py occurs.sh
+EXTRA_DIST = occurs.ggo m4/gnulib-cache.m4 occurs.lua occurs.py occurs.go occurs.sh
 
 CLOC = cloc --force-lang="perl",ggo
 
