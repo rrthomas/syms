@@ -76,5 +76,6 @@ if len(args.file) == 0:
 for i, f in enumerate(args.file):
     h = open(f) if f != '-' else sys.stdin
     occurs(h, f)
+    h.close()
     if i < len(args.file) - 1:
         print('')
