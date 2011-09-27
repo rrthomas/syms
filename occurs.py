@@ -57,7 +57,7 @@ def occurs(h, f):
                 symbol.append(s)
                 freq[s] = 1
     key = None
-    if args.sort[0]:
+    if args.sort:
         try:
             key = {'lexical': None, 'frequency': (lambda x: freq[x])}[args.sort[0]]
         except:
