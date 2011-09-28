@@ -28,7 +28,7 @@ static regex_t symbol_re; // regex object corresponding to the regexs above
 
 // Type to hold symbol-frequency pairs
 typedef struct freq_symbol {
-  const char *symbol;
+  char *symbol;
   size_t count;
 } *freq_symbol_t;
 
@@ -65,19 +65,16 @@ symboleq (const void *v, const void *w)
 static int (*comparer)(const void *s1, const void *s2);
 
 static char *
-get_symbol(const char *s, size_t *n)
+get_symbol(char *s, char **end)
 {
   regmatch_t match[1];
   if (regexec(&symbol_re, s, 1, match, 0) != 0)
     return NULL;
-  *n = match[0].rm_eo;
-  char *w = xmalloc(*n + 1);
-  size_t len = *n - match[0].rm_so;
-  strncpy(w, s + match[0].rm_so, len);
-  w[len] = '\0';
+  *end = s + match[0].rm_eo;
+  char *w = s + match[0].rm_so;
   if (args_info.lower_given)
-    for (size_t i = 0; i < len; i++)
-      w[i] = tolower(w[i]);
+    for (char *p = w; p < *end; p++)
+      *p = tolower(*p);
   return w;
 }
 
@@ -91,18 +88,24 @@ read_symbols(Hash_table *hash)
 
   for (char *line = NULL; getline(&line, &len, stdin) != -1; line = NULL) {
     char *symbol = NULL, *p = line;
-    for (size_t n = 0; symbol = get_symbol(p, &n); p += n) {
+    for (char *end; symbol = get_symbol(p, &end); p = end) {
       struct freq_symbol fw2 = {symbol, 0};
+      // Temporarily insert a NUL to make the symbol a string
+      char c = *end;
+      *end = '\0';
       freq_symbol_t fw = hash_lookup(hash, &fw2);
       if (fw) {
         fw->count++;
-        free(symbol);
       } else {
         symbols++;
         fw = XZALLOC(struct freq_symbol);
-        *fw = (struct freq_symbol) {.symbol = symbol, .count = 1};
+        size_t len = end - symbol;
+        *fw = (struct freq_symbol) {.symbol = xmalloc(len + 1), .count = 1};
+        strncpy(fw->symbol, symbol, len);
+        fw->symbol[len] = '\0';
         assert(hash_insert(hash, fw));
       }
+      *end = c; // Restore the overwritten character
     }
     free(line);
   }
