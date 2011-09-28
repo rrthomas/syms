@@ -18,13 +18,11 @@
 #include <regex.h>
 #include "xalloc.h"
 #include "hash.h"
-#include "gl_xlist.h"
-#include "gl_linked_list.h"
 
 #include "cmdline.h"
 
 
-static regex_t symbol_re; // regex object corresponding to the regexs above
+struct gengetopt_args_info args_info;
 
 // Type to hold symbol-frequency pairs
 typedef struct freq_symbol {
@@ -32,13 +30,12 @@ typedef struct freq_symbol {
   size_t count;
 } *freq_symbol_t;
 
-struct gengetopt_args_info args_info;
-
 // Compare a freq_symbol on the symbol field
 static int
 symbolcmp(const void *s1, const void *s2)
 {
-  const char *s1s = ((freq_symbol_t)s1)->symbol, *s2s = ((freq_symbol_t)s2)->symbol;
+  char *s1s = ((const struct freq_symbol *)s1)->symbol;
+  char *s2s = ((const struct freq_symbol *)s2)->symbol;
   return strcoll((const char *)s1s, (const char *)s2s);
 }
 
@@ -46,23 +43,23 @@ symbolcmp(const void *s1, const void *s2)
 static int
 freqcmp(const void *s1, const void *s2)
 {
-  size_t s1c = ((freq_symbol_t)s1)->count, s2c = ((freq_symbol_t)s2)->count;
+  size_t s1c = ((const struct freq_symbol *)s1)->count, s2c = ((const struct freq_symbol *)s2)->count;
   return s1c < s2c ? -1 : (s1c == s2c ? 0 : 1);
 }
 
 static size_t
 symbolhash(const void *v, size_t n)
 {
-  return hash_string(((freq_symbol_t) v)->symbol, n);
+  return hash_string(((const struct freq_symbol *) v)->symbol, n);
 }
 
 static bool
-symboleq (const void *v, const void *w)
+symboleq(const void *v, const void *w)
 {
-  return strcmp(((freq_symbol_t) v)->symbol, ((freq_symbol_t) w)->symbol) == 0;
+  return strcmp(((const struct freq_symbol *) v)->symbol, ((const struct freq_symbol *) w)->symbol) == 0;
 }
 
-static int (*comparer)(const void *s1, const void *s2);
+static regex_t symbol_re; // regex object for the symbol pattern
 
 static char *
 get_symbol(char *s, char **end)
@@ -83,12 +80,11 @@ static size_t
 read_symbols(Hash_table *hash)
 {
   size_t symbols = 0;
-  ssize_t len;
-  char *line = NULL;
+  size_t len;
 
   for (char *line = NULL; getline(&line, &len, stdin) != -1; line = NULL) {
     char *symbol = NULL, *p = line;
-    for (char *end; symbol = get_symbol(p, &end); p = end) {
+    for (char *end; (symbol = get_symbol(p, &end)); p = end) {
       struct freq_symbol fw2 = {symbol, 0};
       // Temporarily insert a NUL to make the symbol a string
       char c = *end;
@@ -98,11 +94,11 @@ read_symbols(Hash_table *hash)
         fw->count++;
       } else {
         symbols++;
-        fw = XZALLOC(struct freq_symbol);
-        size_t len = end - symbol;
-        *fw = (struct freq_symbol) {.symbol = xmalloc(len + 1), .count = 1};
-        strncpy(fw->symbol, symbol, len);
-        fw->symbol[len] = '\0';
+        fw = XMALLOC(struct freq_symbol);
+        size_t symlen = end - symbol;
+        *fw = (struct freq_symbol) {.symbol = xmalloc(symlen + 1), .count = 1};
+        strncpy(fw->symbol, symbol, symlen);
+        fw->symbol[symlen] = '\0';
         assert(hash_insert(hash, fw));
       }
       *end = c; // Restore the overwritten character
@@ -113,6 +109,8 @@ read_symbols(Hash_table *hash)
   return symbols;
 }
 
+static int (*comparer)(const void *s1, const void *s2);
+
 // Process a file
 static void
 process(const char *name)
@@ -120,21 +118,22 @@ process(const char *name)
   // Read file into symbol table
   Hash_table *hash = hash_initialize(256, NULL, symbolhash, symboleq, NULL);
   size_t symbols = read_symbols(hash);
-
-  // Flatten and sort symbol table
-  gl_list_t list = gl_list_create_empty(GL_LINKED_LIST,
-                                        NULL, NULL, NULL, false);
-  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw))
-    args_info.sort_given ? gl_sortedlist_add(list, comparer, fw) : gl_list_add_last(list, fw);
-
-  // Print out symbol data
   if (!args_info.nocount_given)
     fprintf(stderr, "%s: %lu symbols\n", name, (long unsigned)symbols);
-  freq_symbol_t fw;
-  for (gl_list_iterator_t i = gl_list_iterator(list); gl_list_iterator_next(&i, (const void **)(&fw), NULL); ) {
-    printf("%s", fw->symbol);
+
+  // Flatten and sort symbol table
+  freq_symbol_t *list = xmalloc(sizeof(freq_symbol_t) * symbols);
+  size_t i = 0;
+  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw), i++)
+    list[i] = fw;
+  if (args_info.sort_given)
+    qsort(list, symbols, sizeof(freq_symbol_t), comparer);
+
+  // Print out symbol data
+  for (i = 0; i < symbols; i++) {
+    printf("%s", list[i]->symbol);
     if (!args_info.nocount_given)
-      printf(" %zd", fw->count);
+      printf(" %zd", list[i]->count);
     putchar('\n');
   }
 }
