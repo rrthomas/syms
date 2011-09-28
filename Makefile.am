@@ -7,6 +7,7 @@ SUBDIRS = lib
 ACLOCAL_AMFLAGS = -I m4
 
 AM_CPPFLAGS = -I$(top_builddir)/lib -I$(top_srcdir)/lib
+AM_CFLAGS = $(WARN_CFLAGS)
 LDADD = $(top_builddir)/lib/libgnu.a
 
 bin_PROGRAMS = occurs
