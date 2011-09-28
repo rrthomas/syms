@@ -119,7 +119,7 @@ process(const char *name)
   Hash_table *hash = hash_initialize(256, NULL, symbolhash, symboleq, NULL);
   size_t symbols = read_symbols(hash);
   if (!args_info.nocount_given)
-    fprintf(stderr, "%s: %lu symbols\n", name, (long unsigned)symbols);
+    fprintf(stderr, "%s: %zd symbols\n", name, symbols);
 
   // Flatten and sort symbol table
   freq_symbol_t *list = xmalloc(sizeof(freq_symbol_t) * symbols);
