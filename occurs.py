@@ -45,7 +45,6 @@ def occurs(h, f):
                 freq[s] += 1
             else:
                 freq[s] = 1
-    key = None
     if not args.nocount:
         print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
     for _, s in enumerate(freq):
