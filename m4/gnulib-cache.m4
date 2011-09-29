@@ -15,7 +15,7 @@
 
 
 # Specification in the form of a command-line invocation:
-#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=. --no-conditional-dependencies --no-libtool --macro-prefix=gl extensions getline getopt-posix hash manywarnings regex stdbool vasprintf xalloc
+#   gnulib-tool --import --dir=. --lib=libgnu --source-base=lib --m4-base=m4 --doc-base=doc --tests-base=tests --aux-dir=. --no-conditional-dependencies --no-libtool --macro-prefix=gl extensions getline getopt-posix hash manywarnings regex stdarg stdbool vasprintf xalloc
 
 # Specification in the form of a few gnulib-tool.m4 macro invocations:
 gl_LOCAL_DIR([])
@@ -26,6 +26,7 @@ gl_MODULES([
   hash
   manywarnings
   regex
+  stdarg
   stdbool
   vasprintf
   xalloc

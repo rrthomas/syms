@@ -8,6 +8,7 @@
 #include <config.h>
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -138,6 +139,18 @@ process(const char *name)
   }
 }
 
+static _Noreturn void
+die(const char *fmt, ...)
+{
+  va_list ap;
+  va_start(ap, fmt);
+  fprintf(stderr, PACKAGE ": ");
+  vfprintf(stderr, fmt, ap);
+  putc('\n', stderr);
+  va_end(ap);
+  exit(1);
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -157,6 +170,8 @@ main(int argc, char *argv[])
       comparer = symbolcmp;
     else if (strcmp(args_info.sort_arg, "frequency") == 0)
       comparer = freqcmp;
+    else
+      die("no such sort method `%s'", args_info.sort_arg);
   }
 
   // Compile regex
@@ -167,7 +182,7 @@ main(int argc, char *argv[])
     size_t errlen = regerror(err, &symbol_re, NULL, 0);
     char *errbuf = xmalloc(errlen);
     regerror(err, &symbol_re, errbuf, errlen);
-    fprintf(stderr, PACKAGE ": %s\n", errbuf);
+    die("%s", errbuf);
   }
 
   // Process input
@@ -176,10 +191,8 @@ main(int argc, char *argv[])
   else
     for (unsigned i = 0; i < args_info.inputs_num; i++) {
       if (strcmp(args_info.inputs[i], "-") != 0) {
-        if (!freopen(args_info.inputs[i], "r", stdin)) {
-          fprintf(stderr, PACKAGE ": cannot open `%s'\n", args_info.inputs[i]);
-          exit(1);
-        }
+        if (!freopen(args_info.inputs[i], "r", stdin))
+          die("cannot open `%s'", args_info.inputs[i]);
       }
       process(args_info.inputs[i]);
       fclose(stdin);
