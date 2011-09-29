@@ -19,7 +19,6 @@ var author = "Reuben Thomas <rrt@sc3d.org>"
 // Command-line arguments
 var nocount *bool = flag.Bool("nocount", false, "don't show the frequencies or total")
 var symbol *string = flag.String("symbol", "([A-Za-z]+)", "symbols are given by REGEXP")
-var downcase *bool = flag.Bool("lower", false, "symbols are converted to lower case")
 var versionFlag *bool = flag.Bool("version", false, "output version information and exit")
 var helpFlag *bool = flag.Bool("help", false, "display this help and exit")
 
@@ -65,7 +64,6 @@ func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
 		syms := pattern.FindAllStringSubmatch(line, -1)
 		for _, matches := range syms {
 			s := matches[1]
-			if *downcase { s = strings.ToLower(s) }
 			if sl.freq[s] == 0 { sl.symbol = append(sl.symbol, s) }
 			sl.freq[s] += 1
 		}

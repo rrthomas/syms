@@ -52,11 +52,7 @@ get_symbol(char *s, char **end)
   if (regexec(&symbol_re, s, 1, match, 0) != 0)
     return NULL;
   *end = s + match[0].rm_eo;
-  char *w = s + match[0].rm_so;
-  if (args_info.lower_given)
-    for (char *p = w; p < *end; p++)
-      *p = tolower(*p);
-  return w;
+  return s + match[0].rm_so;
 }
 
 // Read the file into a hash

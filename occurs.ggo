@@ -5,7 +5,6 @@ usage " [OPTION]... [FILE]...\n\
 
 option "nocount"    n "don't show the frequencies or total"     flag off
 option "symbol"     s "symbols are given by REGEXP"             string typestr="regexp" optional default="[[:alpha:]]+"
-option "lower"      L "symbols are converted to lower case"     flag off
 
 text "\n\
 The default symbol type is words (-s \"[[:alpha:]]+\"); other useful settings include:\n\

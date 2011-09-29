@@ -22,9 +22,6 @@ function occurs (file, number)
   for line in io.lines () do
     rex_posix.gsub (line, pattern,
                     function (s)
-                      if getopt.opt.lower then
-                        s = string.lower (s)
-                      end
                       if not freq[s] then
                         table.insert (symbol, s)
                         freq[s] = 1
@@ -52,7 +49,6 @@ end
 options = {
   Option {{"nocount", "n"}, "don't show the frequencies or total"},
   Option {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
-  Option {{"lower", "L"}, "symbols are converted to lower case"},
 }
 
 

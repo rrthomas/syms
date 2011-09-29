@@ -21,8 +21,6 @@ parser.add_argument('-n', '--nocount', action='store_true',
                     help='don\'t show the frequencies or total')
 parser.add_argument('-s', '--symbol', metavar='REGEXP', default='[^\W\d_]+',
                     help='symbols are given by REGEXP')
-parser.add_argument('-L', '--lower',
-                    help='symbols are converted to lower case', action='store_true')
 parser.add_argument('-V', '--version', action='version',
                     version='%(prog)s 0.9 (27 Sep 2011) by Reuben Thomas <rrt@sc3d.org>')
 parser.add_argument('file', metavar='FILE', nargs='*')
@@ -43,8 +41,6 @@ def occurs(h, f):
     symbol, freq = [], {}
     for line in h:
         for s in pattern.findall(line):
-            if args.lower:
-                s = s.lower()
             try:
                 freq[s] += 1
             except:
