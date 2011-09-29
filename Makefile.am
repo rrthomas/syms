@@ -32,5 +32,11 @@ release: distcheck
 	woger gnu,freshmeat $(PACKAGE) "$(PACKAGE_NAME)" $(VERSION) "the tiny Emacs clone" release-notes && \
 	rm -f release-notes
 
+pg100.txt:
+	wget http://www.gutenberg.org/ebooks/100.txt.utf8 -O $@
+
+check-local: pg100.txt occurs
+	time ./occurs$(EXEEXT) pg100.txt >/dev/null
+
 loc:
 	$(CLOC) --no3 occurs.c occurs.ggo Makefile.am configure.ac
