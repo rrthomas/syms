@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"flag"
 	"regexp"
-	"strings"
 )
 
 var progname = "occurs"
@@ -44,15 +43,6 @@ type FreqSlice struct {
 	freq map[string]int
 }
 
-func die(msg string) {
-	os.Stderr.WriteString(progname + ": " + msg)
-	os.Exit(1)
-}
-
-func dieWithError(err os.Error) {
-	die(err.String() + "\n")
-}
-
 // Process a file
 func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
 	// Read file into symbol table
@@ -79,6 +69,13 @@ func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
 }
 
 func main() {
+	defer func () {
+		if r := recover(); r != nil {
+			fmt.Fprintf(os.Stderr, "%s: %s\n", progname, r)
+			os.Exit(1)
+		}
+	}()
+
 	// FIXME: setlocale(locale.LC_ALL, '')
 
 	// Parse command-line args
@@ -88,7 +85,7 @@ func main() {
 
 	// Compile symbol-matching regexp
 	pattern, err := regexp.Compile(*symbol)
-	if err != nil { dieWithError(err) }
+	if err != nil { panic(err) }
 	pattern.MatchString("foo")
 
 	// Process input
@@ -96,12 +93,13 @@ func main() {
 		occurs(os.Stdin, "-", pattern)
 	} else {
 		for i := 0; i < flag.NArg(); i++ {
-			var h io.Reader;
+			var h *os.File;
 			f := flag.Arg(i)
 			if f != "-" {
 				var err os.Error
 				h, err = os.Open(f)
-				if err != nil { dieWithError(err) }
+				if err != nil { panic(err) }
+				defer h.Close()
 			} else { h = os.Stdin }
 			occurs(h, f, pattern)
 			if i < flag.NArg() - 1 { os.Stdout.WriteString("\n") }
