@@ -35,16 +35,15 @@ typedef struct freq_symbol {
 static int
 symbolcmp(const void *s1, const void *s2)
 {
-  char *s1s = ((const struct freq_symbol *)s1)->symbol;
-  char *s2s = ((const struct freq_symbol *)s2)->symbol;
-  return strcoll((const char *)s1s, (const char *)s2s);
+  return strcoll((const char *)(*(struct freq_symbol * const *)s1)->symbol,
+                 (const char *)(*(struct freq_symbol * const *)s2)->symbol);
 }
 
 // Compare a freq_symbol on the frequency field
 static int
 freqcmp(const void *s1, const void *s2)
 {
-  size_t s1c = ((const struct freq_symbol *)s1)->count, s2c = ((const struct freq_symbol *)s2)->count;
+  size_t s1c = (*(struct freq_symbol * const *)s1)->count, s2c = (*(struct freq_symbol * const *)s2)->count;
   return s1c < s2c ? -1 : (s1c == s2c ? 0 : 1);
 }
 
