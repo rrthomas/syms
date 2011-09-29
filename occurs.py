@@ -9,22 +9,18 @@ import re
 parser = argparse.ArgumentParser(prog='occurs',
                                  description='Count the occurrences of each symbol in a file.',
                                  epilog='''
-The default symbol type is words (-s "[^\W\d_]+"); other useful settings
+The default symbol type is words (-s "([^\W\d_]+)"); other useful settings
 include:
 
-  non-white-space characters: -s "\S+"
-  alphanumerics and underscores: -s "\w+"
-  XML tags: -s "[a-zA-Z_:][a-zA-Z_:.0-9-]*" -l "<" -r "[\s>]"
+  non-white-space characters: -s "(\S+)"
+  alphanumerics and underscores: -s "(\w+)"
+  XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('-n', '--nocount', action='store_true',
                     help='don\'t show the frequencies or total')
 parser.add_argument('-s', '--symbol', metavar='REGEXP', default='[^\W\d_]+',
                     help='symbols are given by REGEXP')
-parser.add_argument('-l', '--left', metavar='REGEXP', default='',
-                    help='symbols must be preceded by REGEXP')
-parser.add_argument('-r', '--right', metavar='REGEXP', default='',
-                    help='symbols must be followed by REGEXP')
 parser.add_argument('-L', '--lower',
                     help='symbols are converted to lower case', action='store_true')
 parser.add_argument('-V', '--version', action='version',
@@ -38,7 +34,7 @@ locale.setlocale(locale.LC_ALL, '')
 
 # Compile symbol-matching regexp
 try:
-    pattern = re.compile(args.left + "(" + args.symbol + ")" + args.right, re.LOCALE)
+    pattern = re.compile(args.symbol, re.LOCALE)
 except re.error as err:
     parser.error(err.args[0])
 

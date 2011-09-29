@@ -138,9 +138,7 @@ main(int argc, char *argv[])
     cmdline_parser_print_version();
 
   // Compile regex
-  char *s;
-  assert(asprintf(&s, "%s(%s)%s", args_info.left_arg, args_info.symbol_arg, args_info.right_arg) > 0);
-  int err = regcomp(&symbol_re, s, REG_EXTENDED);
+  int err = regcomp(&symbol_re, args_info.symbol_arg, REG_EXTENDED);
   if (err != 0) {
     size_t errlen = regerror(err, &symbol_re, NULL, 0);
     char *errbuf = xmalloc(errlen);

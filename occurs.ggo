@@ -5,8 +5,6 @@ usage " [OPTION]... [FILE]...\n\
 
 option "nocount"    n "don't show the frequencies or total"     flag off
 option "symbol"     s "symbols are given by REGEXP"             string typestr="regexp" optional default="[[:alpha:]]+"
-option "left"       l "symbols must be preceded by REGEXP"      string typestr="regexp" optional default=""
-option "right"      r "symbols must be followed by REGEXP"      string typestr="regexp" optional default=""
 option "lower"      L "symbols are converted to lower case"     flag off
 
 text "\n\
