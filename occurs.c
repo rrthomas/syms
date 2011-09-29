@@ -31,22 +31,6 @@ typedef struct freq_symbol {
   size_t count;
 } *freq_symbol_t;
 
-// Compare a freq_symbol on the symbol field
-static int
-symbolcmp(const void *s1, const void *s2)
-{
-  return strcoll((const char *)(*(struct freq_symbol * const *)s1)->symbol,
-                 (const char *)(*(struct freq_symbol * const *)s2)->symbol);
-}
-
-// Compare a freq_symbol on the frequency field
-static int
-freqcmp(const void *s1, const void *s2)
-{
-  size_t s1c = (*(struct freq_symbol * const *)s1)->count, s2c = (*(struct freq_symbol * const *)s2)->count;
-  return s1c < s2c ? -1 : (s1c == s2c ? 0 : 1);
-}
-
 static size_t
 symbolhash(const void *v, size_t n)
 {
@@ -75,7 +59,7 @@ get_symbol(char *s, char **end)
   return w;
 }
 
-// Read the file into a list
+// Read the file into a hash
 static size_t
 read_symbols(Hash_table *hash)
 {
@@ -109,8 +93,6 @@ read_symbols(Hash_table *hash)
   return symbols;
 }
 
-static int (*comparer)(const void *s1, const void *s2);
-
 // Process a file
 static void
 process(const char *name)
@@ -121,19 +103,11 @@ process(const char *name)
   if (!args_info.nocount_given)
     fprintf(stderr, "%s: %zd symbols\n", name, symbols);
 
-  // Flatten and sort symbol table
-  freq_symbol_t *list = xmalloc(sizeof(freq_symbol_t) * symbols);
-  size_t i = 0;
-  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw), i++)
-    list[i] = fw;
-  if (args_info.sort_given)
-    qsort(list, symbols, sizeof(freq_symbol_t), comparer);
-
   // Print out symbol data
-  for (i = 0; i < symbols; i++) {
-    printf("%s", list[i]->symbol);
+  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw)) {
+    printf("%s", fw->symbol);
     if (!args_info.nocount_given)
-      printf(" %zd", list[i]->count);
+      printf(" %zd", fw->count);
     putchar('\n');
   }
 }
@@ -162,16 +136,6 @@ main(int argc, char *argv[])
     cmdline_parser_print_help();
   if (args_info.version_given)
     cmdline_parser_print_version();
-
-  // Set sort order
-  if (args_info.sort_given) {
-    if (strcmp(args_info.sort_arg, "lexical") == 0)
-      comparer = symbolcmp;
-    else if (strcmp(args_info.sort_arg, "frequency") == 0)
-      comparer = freqcmp;
-    else
-      die("no such sort method `%s'", args_info.sort_arg);
-  }
 
   // Compile regex
   char *s;

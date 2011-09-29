@@ -33,17 +33,6 @@ function occurs (file, number)
                       end
                   end)
   end
-  if getopt.opt.sort == "lexical" then
-    table.sort (symbol)
-  elseif getopt.opt.sort == "frequency" then
-    table.sort (symbol,
-                function (a, b)
-                  return freq[a] > freq[b]
-                end)
-  elseif getopt.opt.sort then
-    io.stderr:write (prog.name .. ": no such sort method `" .. tostring (getopt.opt.sort) .. "'\n")
-    os.exit(1)
-  end
   if not getopt.opt.nocount then
     io.stderr:write (file .. ": " .. tostring (#symbol) .. " symbols\n")
   end
@@ -61,7 +50,6 @@ end
 
 -- Command-line options
 options = {
-  Option {{"sort", "S"}, "sort by given method (one of `lexical', `frequency')", "Req", "METHOD"},
   Option {{"nocount", "n"}, "don't show the frequencies or total"},
   Option {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
   Option {{"left", "l"}, "symbols must be preceded by REGEXP", "Req", "REGEXP"},

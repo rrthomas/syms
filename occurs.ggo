@@ -3,7 +3,6 @@ purpose "Count the number of occurrences of each symbol in a file"
 usage " [OPTION]... [FILE]...\n\
   In the file list, `-' means read from standard input"
 
-option "sort"       S "sort by given method (one of `lexical', `frequency')" string optional
 option "nocount"    n "don't show the frequencies or total"     flag off
 option "symbol"     s "symbols are given by REGEXP"             string typestr="regexp" optional default="[[:alpha:]]+"
 option "left"       l "symbols must be preceded by REGEXP"      string typestr="regexp" optional default=""

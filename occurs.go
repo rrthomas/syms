@@ -10,7 +10,6 @@ import (
 	"flag"
 	"regexp"
 	"strings"
-	"sort"
 )
 
 var progname = "occurs"
@@ -18,7 +17,6 @@ var version = "0.9 (27 Sep 2011)"
 var author = "Reuben Thomas <rrt@sc3d.org>"
 
 // Command-line arguments
-var sortMeth *string = flag.String("sort", "", "sort by given method (one of `lexical', `frequency')")
 var nocount *bool = flag.Bool("nocount", false, "don't show the frequencies or total")
 var symbol *string = flag.String("symbol", "[A-Za-z]+", "symbols are given by REGEXP")
 var left *string = flag.String("left", "", "symbols must be preceded by REGEXP")
@@ -49,17 +47,6 @@ type FreqSlice struct {
 	freq map[string]int
 }
 
-// Methods required by sort.Interface
-func (s FreqSlice) Len() int {
-	return len(s.symbol)
-}
-func (s FreqSlice) Less(i, j int) bool {
-	return s.freq[s.symbol[i]] < s.freq[s.symbol[j]]
-}
-func (s FreqSlice) Swap(i, j int) {
-	s.symbol[i], s.symbol[j] = s.symbol[j], s.symbol[i]
-}
-
 func die(msg string) {
 	os.Stderr.WriteString(progname + ": " + msg)
 	os.Exit(1)
@@ -84,14 +71,6 @@ func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
 			if sl.freq[s] == 0 { sl.symbol = append(sl.symbol, s) }
 			sl.freq[s] += 1
 		}
-	}
-
-	// Sort symbols
-	switch *sortMeth {
-	case "": // do nothing
-	case "lexical": sort.Strings(sl.symbol)
-	case "frequency": sort.Sort(sl)
-	default: die(fmt.Sprintf("no such sort method `%s'\n", *sortMeth))
 	}
 
 	// Print out symbol data

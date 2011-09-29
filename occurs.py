@@ -17,8 +17,6 @@ include:
   XML tags: -s "[a-zA-Z_:][a-zA-Z_:.0-9-]*" -l "<" -r "[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-S', '--sort', metavar='METHOD', type=str, nargs=1,
-                    help='sort by given method (one of `lexical\', `frequency\')')
 parser.add_argument('-n', '--nocount', action='store_true',
                     help='don\'t show the frequencies or total')
 parser.add_argument('-s', '--symbol', metavar='REGEXP', default='[^\W\d_]+',
@@ -57,12 +55,6 @@ def occurs(h, f):
                 symbol.append(s)
                 freq[s] = 1
     key = None
-    if args.sort:
-        try:
-            key = {'lexical': None, 'frequency': (lambda x: freq[x])}[args.sort[0]]
-        except:
-            parser.error('no such sort method `{}\''.format(args.sort[0]))
-        symbol.sort(key=key)
     if not args.nocount:
         print("{}: {} symbols".format(f, len(symbol)), file=sys.stderr)
     for s in symbol:
