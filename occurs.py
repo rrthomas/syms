@@ -38,18 +38,17 @@ except re.error as err:
 
 # Process a file
 def occurs(h, f):
-    symbol, freq = [], {}
+    freq = {}
     for line in h:
         for s in pattern.findall(line):
-            try:
+            if s in freq:
                 freq[s] += 1
-            except:
-                symbol.append(s)
+            else:
                 freq[s] = 1
     key = None
     if not args.nocount:
-        print("{}: {} symbols".format(f, len(symbol)), file=sys.stderr)
-    for s in symbol:
+        print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
+    for _, s in enumerate(freq):
         print(s, end='')
         if not args.nocount:
             print(' {}'.format(freq[s]), end='')
