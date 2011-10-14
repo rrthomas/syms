@@ -41,10 +41,7 @@ def occurs(h, f):
     freq = {}
     for line in h:
         for s in pattern.findall(line):
-            if s in freq:
-                freq[s] += 1
-            else:
-                freq[s] = 1
+            freq[s] = freq.get(s, 0) + 1
     if not args.nocount:
         print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
     for _, s in enumerate(freq):
