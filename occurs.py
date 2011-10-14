@@ -51,8 +51,8 @@ def occurs(h, f):
             print(' {}'.format(freq[s]), end='')
         print('')
 
-if len(args.file) == 0:
-    args.file.append('-')
+
+args.file = args.file or ['-']
 for i, f in enumerate(args.file):
     h = fileinput.input(files=(f,))
     occurs(h, f)
