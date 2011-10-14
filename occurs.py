@@ -5,6 +5,7 @@ import argparse
 import locale
 import re
 import fileinput
+from collections import Counter
 
 # Command-line arguments
 parser = argparse.ArgumentParser(prog='occurs',
@@ -39,10 +40,9 @@ except re.error as err:
 
 # Process a file
 def occurs(h, f):
-    freq = {}
+    freq = Counter()
     for line in h:
-        for s in pattern.findall(line):
-            freq[s] = freq.get(s, 0) + 1
+        freq.update(pattern.findall(line))
     if not args.nocount:
         print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
     for s in freq:
