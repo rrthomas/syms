@@ -4,6 +4,7 @@ import sys
 import argparse
 import locale
 import re
+import fileinput
 
 # Command-line arguments
 parser = argparse.ArgumentParser(prog='occurs',
@@ -53,7 +54,7 @@ def occurs(h, f):
 if len(args.file) == 0:
     args.file.append('-')
 for i, f in enumerate(args.file):
-    h = open(f, 'U') if f != '-' else sys.stdin
+    h = fileinput.input(files=(f,))
     occurs(h, f)
     h.close()
     if i < len(args.file) - 1:
