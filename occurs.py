@@ -4,6 +4,8 @@ import sys
 import argparse
 import locale
 import re
+import fileinput
+from collections import Counter
 
 # Command-line arguments
 parser = argparse.ArgumentParser(prog='occurs',
@@ -38,26 +40,22 @@ except re.error as err:
 
 # Process a file
 def occurs(h, f):
-    freq = {}
+    freq = Counter()
     for line in h:
-        for s in pattern.findall(line):
-            if s in freq:
-                freq[s] += 1
-            else:
-                freq[s] = 1
+        freq.update(pattern.findall(line))
     if not args.nocount:
         print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
-    for _, s in enumerate(freq):
+    for s in freq:
         print(s, end='')
         if not args.nocount:
             print(' {}'.format(freq[s]), end='')
         print('')
 
-if len(args.file) == 0:
-    args.file.append('-')
+
+args.file = args.file or ['-']
 for i, f in enumerate(args.file):
-    h = open(f, 'U') if f != '-' else sys.stdin
+    if i > 0:
+        print('')
+    h = fileinput.input(files=(f,))
     occurs(h, f)
     h.close()
-    if i < len(args.file) - 1:
-        print('')
