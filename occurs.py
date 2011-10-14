@@ -54,8 +54,8 @@ def occurs(h, f):
 
 args.file = args.file or ['-']
 for i, f in enumerate(args.file):
+    if i > 0:
+        print('')
     h = fileinput.input(files=(f,))
     occurs(h, f)
     h.close()
-    if i < len(args.file) - 1:
-        print('')
