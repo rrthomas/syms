@@ -35,7 +35,7 @@ while gets do
 end
 
 # Output results
-warn "#{words.length} symbols" unless nocount
 words.each do |k,v|
-  puts nocount ? k : "#{v} #{k}"
+  puts nocount ? k : "#{k} #{v}"
 end
+warn "Total symbols: #{words.length}" unless nocount

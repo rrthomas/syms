@@ -10,40 +10,8 @@ prog = {
     "  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[[:space:]>]\""
 }
 
--- FIXME: rewrite in Python
-
 require "std"
 require "rex_posix"
-
--- Process a file
-local pattern -- regexp, defined below
-function occurs (file, number)
-  local symbol, freq = {}, {}
-  for line in io.lines () do
-    rex_posix.gsub (line, pattern,
-                    function (s)
-                      if not freq[s] then
-                        table.insert (symbol, s)
-                        freq[s] = 1
-                      else
-                        freq[s] = freq[s] + 1
-                      end
-                  end)
-  end
-  if not getopt.opt.nocount then
-    io.stderr:write (file .. ": " .. tostring (#symbol) .. " symbols\n")
-  end
-  for s in list.elems (symbol) do
-    io.write (s)
-    if not getopt.opt.nocount then
-      io.write (" " .. tostring (freq[s]))
-    end
-    io.write ("\n")
-  end
-  if number < #arg then
-    io.write ("\n")
-  end
-end
 
 -- Command-line options
 options = {
@@ -51,18 +19,33 @@ options = {
   Option {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
 }
 
-
 -- Parse command-line args
 os.setlocale ("")
 getopt.processArgs ()
 local symbolPat = getopt.opt.symbol or "([[:alpha:]]+)"
 
 -- Compile symbol-matching regexp
-local ok
-ok, pattern = pcall (rex_posix.new, symbolPat)
+local ok, pattern = pcall (rex_posix.new, symbolPat)
 if not ok then
-  io.stderr:write (prog.name .. ": " .. pattern .. "\n")
-  os.exit (1)
+  die (pattern)
 end
 
-io.processFiles (occurs)
+-- Process input
+local freq = {}
+io.processFiles (function (file, number)
+                   for line in io.lines () do
+                     for s in rex_posix.gmatch (line, pattern) do
+                       freq[s] = (freq[s] or 0) + 1
+                     end
+                   end
+               end)
+
+-- Write output
+local symbols = 0
+for s in pairs (freq) do
+  io.writeline (s .. (getopt.opt.nocount and "" or " " .. freq[s]))
+  symbols = symbols + 1
+end
+if not getopt.opt.nocount then
+  warn ("total symbols: " .. symbols)
+end

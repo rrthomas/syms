@@ -3,7 +3,6 @@
 package main
 
 import (
-	"io"
 	"bufio"
 	"os"
 	"fmt"
@@ -38,34 +37,13 @@ func showVersion() {
 	os.Stderr.WriteString(progname + " " + version + " " + author + "\n")
 }
 
-type FreqSlice struct {
-	symbol []string
-	freq map[string]int
-}
-
-// Process a file
-func occurs(h io.Reader, f string, pattern *regexp.Regexp) {
-	// Read file into symbol table
-	bh := bufio.NewReader(h)
-	sl := &FreqSlice{ make([]string, 0, 0), make(map[string]int) }
-	for {
-		line, err := bh.ReadString('\n')
-		if err == os.EOF { break }
-		syms := pattern.FindAllStringSubmatch(line, -1)
-		for _, matches := range syms {
-			s := matches[1]
-			if sl.freq[s] == 0 { sl.symbol = append(sl.symbol, s) }
-			sl.freq[s] += 1
-		}
+func readline (h *bufio.Reader) ([]byte, os.Error) {
+	var line []byte;
+	for l, isPrefix, err := h.ReadLine(); true; l, isPrefix, err = h.ReadLine() {
+		line = append(line, l...)
+		if err != nil || !isPrefix { return line, err }
 	}
-
-	// Print out symbol data
-	if !*nocount { fmt.Fprintf(os.Stderr, "%s: %d symbols\n", f, len(sl.symbol)) }
-	for _, s := range sl.symbol {
-		fmt.Print(s)
-		if !*nocount { fmt.Printf(" %d", sl.freq[s]) }
-		fmt.Print("\n")
-	}
+	return line, nil
 }
 
 func main() {
@@ -86,23 +64,48 @@ func main() {
 	// Compile symbol-matching regexp
 	pattern, err := regexp.Compile(*symbol)
 	if err != nil { panic(err) }
-	pattern.MatchString("foo")
 
 	// Process input
-	if flag.NArg() == 0 {
-		occurs(os.Stdin, "-", pattern)
-	} else {
-		for i := 0; i < flag.NArg(); i++ {
-			var h *os.File;
-			f := flag.Arg(i)
-			if f != "-" {
-				var err os.Error
-				h, err = os.Open(f)
-				if err != nil { panic(err) }
-				defer h.Close()
-			} else { h = os.Stdin }
-			occurs(h, f, pattern)
-			if i < flag.NArg() - 1 { os.Stdout.WriteString("\n") }
+	symbol := make([]string, 0, 0)
+	freq := make(map[string]int)
+	args := flag.Args()
+	if flag.NArg() == 0 { args = append(args, "-") }
+	for i := range args {
+		var h *os.File;
+		f := args[i]
+		if f != "-" {
+			var err os.Error
+			h, err = os.Open(f)
+			if err != nil { panic(err) }
+			defer h.Close()
+		} else { h = os.Stdin }
+
+		// Read file into symbol table
+		bh := bufio.NewReader(h)
+	read:
+		for {
+			line, err := readline(bh)
+			switch err {
+			case nil:
+				syms := pattern.FindAllSubmatch(line, -1)
+				for _, matches := range syms {
+					s := string(matches[1])
+					if freq[s] == 0 { symbol = append(symbol, s) }
+					freq[s] += 1
+				}
+			case os.EOF:
+				break read
+			default:
+				panic(err)
+			}
 		}
 	}
+
+	// Print out symbol data
+	for _, s := range symbol {
+		fmt.Print(s)
+		if !*nocount { fmt.Printf(" %d", freq[s]) }
+		fmt.Print("\n")
+	}
+	if !*nocount { fmt.Fprintf(os.Stderr, "Total symbols: %d\n", len(symbol)) }
 }

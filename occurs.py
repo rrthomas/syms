@@ -38,24 +38,19 @@ try:
 except re.error as err:
     parser.error(err.args[0])
 
-# Process a file
-def occurs(h, f):
-    freq = Counter()
-    for line in h:
-        freq.update(pattern.findall(line))
-    if not args.nocount:
-        print("{}: {} symbols".format(f, len(freq)), file=sys.stderr)
-    for s in freq:
-        print(s, end='')
-        if not args.nocount:
-            print(' {}'.format(freq[s]), end='')
-        print('')
-
-
+# Process input
+freq = Counter()
 args.file = args.file or ['-']
 for i, f in enumerate(args.file):
-    if i > 0:
-        print('')
-    h = fileinput.input(files=(f,))
-    occurs(h, f)
-    h.close()
+    with fileinput.input(files=(f,)) as h:
+        for line in h:
+            freq.update(pattern.findall(line))
+
+# Write output
+for s in freq:
+    print(s, end='')
+    if not args.nocount:
+        print(' {}'.format(freq[s]), end='')
+    print('')
+if not args.nocount:
+    print("Total symbols: {}".format(len(freq)), file=sys.stderr)

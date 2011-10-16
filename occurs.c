@@ -89,25 +89,6 @@ read_symbols(Hash_table *hash)
   return symbols;
 }
 
-// Process a file
-static void
-process(const char *name)
-{
-  // Read file into symbol table
-  Hash_table *hash = hash_initialize(256, NULL, symbolhash, symboleq, NULL);
-  size_t symbols = read_symbols(hash);
-  if (!args_info.nocount_given)
-    fprintf(stderr, "%s: %zd symbols\n", name, symbols);
-
-  // Print out symbol data
-  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw)) {
-    printf("%s", fw->symbol);
-    if (!args_info.nocount_given)
-      printf(" %zd", fw->count);
-    putchar('\n');
-  }
-}
-
 static _Noreturn void
 die(const char *fmt, ...)
 {
@@ -143,19 +124,31 @@ main(int argc, char *argv[])
   }
 
   // Process input
+  Hash_table *hash = hash_initialize(256, NULL, symbolhash, symboleq, NULL);
   if (args_info.inputs_num == 0)
-    process("-");
+    read_symbols(hash);
   else
     for (unsigned i = 0; i < args_info.inputs_num; i++) {
       if (strcmp(args_info.inputs[i], "-") != 0) {
         if (!freopen(args_info.inputs[i], "r", stdin))
           die("cannot open `%s'", args_info.inputs[i]);
       }
-      process(args_info.inputs[i]);
+      read_symbols(hash);
       fclose(stdin);
       if (i < (unsigned)args_info.inputs_num - 1)
         putchar('\n');
     }
+
+  // Print out symbol data
+  size_t symbols = 0;
+  for (freq_symbol_t fw = hash_get_first(hash); fw != NULL; fw = hash_get_next(hash, fw), symbols++) {
+    printf("%s", fw->symbol);
+    if (!args_info.nocount_given)
+      printf(" %zd", fw->count);
+    putchar('\n');
+  }
+  if (!args_info.nocount_given)
+    fprintf(stderr, "Total symbols: %zd\n", symbols);
 
   return EXIT_SUCCESS;
 }
