@@ -10,12 +10,11 @@ import (
 	"regexp"
 )
 
-var progname = "occurs"
-var version = "0.9 (27 Sep 2011)"
+var progname = "syms"
+var version = "0.9 (14 Jan 2012)"
 var author = "Reuben Thomas <rrt@sc3d.org>"
 
 // Command-line arguments
-var nocount *bool = flag.Bool("nocount", false, "don't show the frequencies or total")
 var symbol *string = flag.String("symbol", "([A-Za-z]+)", "symbols are given by REGEXP")
 var versionFlag *bool = flag.Bool("version", false, "output version information and exit")
 var helpFlag *bool = flag.Bool("help", false, "display this help and exit")
@@ -30,7 +29,7 @@ func usage() {
 		"\n" +
 		"  non-white-space characters: -s \"([ \\t\\n\\f\\v]+)\"\n" +
 		"  alphanumerics and underscores: -s \"([A-Za-z0-9_]+)\"\n" +
-		"  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*[\\s>]\"\n")
+		"  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\\s>]\"\n")
 }
 
 func showVersion() {
@@ -57,8 +56,6 @@ func main() {
 	if err != nil { panic(err) }
 
 	// Process input
-	symbols := 0
-	freq := make(map[string]int)
 	args := flag.Args()
 	if flag.NArg() == 0 { args = append(args, "-") }
 	for i := range args {
@@ -68,7 +65,6 @@ func main() {
 			var err os.Error
 			h, err = os.Open(f)
 			if err != nil { panic(err) }
-			defer h.Close()
 		} else { h = os.Stdin }
 
 		// Read file into symbol table
@@ -80,9 +76,7 @@ func main() {
 			case nil:
 				syms := pattern.FindAllStringSubmatch(line, -1)
 				for _, matches := range syms {
-					s := string(matches[1])
-					if freq[s] == 0 { symbols++ }
-					freq[s] += 1
+					fmt.Printf("%s\n", string(matches[1]))
 				}
 			case os.EOF:
 				break read
@@ -90,13 +84,6 @@ func main() {
 				panic(err)
 			}
 		}
+		h.Close()
 	}
-
-	// Print out symbol data
-	for s, _ := range freq {
-		fmt.Print(s)
-		if !*nocount { fmt.Printf(" %d", freq[s]) }
-		fmt.Print("\n")
-	}
-	if !*nocount { fmt.Fprintf(os.Stderr, "Total symbols: %d\n", symbols) }
 }

@@ -3,7 +3,7 @@ dnl
 dnl Copyright (c) 2009, 2011 Reuben Thomas
 
 dnl Initialise autoconf and automake
-AC_INIT(occurs, 0.592, rrt@sc3d.org)
+AC_INIT(syms, 0.592, rrt@sc3d.org)
 AM_INIT_AUTOMAKE([-Wall -Werror std-options])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 

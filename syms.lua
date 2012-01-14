@@ -1,8 +1,8 @@
 #!/usr/bin/env lua
 prog = {
-  name = "occurs",
-  banner = "occurs 0.85 (27 Sep 2011) by Reuben Thomas <rrt@sc3d.org>",
-  purpose = "Count the occurrences of each symbol in a file.",
+  name = "syms",
+  banner = "syms 0.85 (14 Jan 2012) by Reuben Thomas <rrt@sc3d.org>",
+  purpose = "List symbols in input.",
   notes = "The default symbol type is words (-s \"([[:alpha:]]+)\"); other useful settings\n" ..
     "include:\n\n" ..
     "  non-white-space characters: -s \"[^[:space:]]+\"\n" ..
@@ -15,7 +15,6 @@ require "rex_posix"
 
 -- Command-line options
 options = {
-  Option {{"nocount", "n"}, "don't show the frequencies or total"},
   Option {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
 }
 
@@ -31,21 +30,10 @@ if not ok then
 end
 
 -- Process input
-local freq = {}
 io.processFiles (function (file, number)
                    for line in io.lines () do
                      for s in rex_posix.gmatch (line, pattern) do
-                       freq[s] = (freq[s] or 0) + 1
+                       io.writeline (s)
                      end
                    end
                end)
-
--- Write output
-local symbols = 0
-for s in pairs (freq) do
-  io.writeline (s .. (getopt.opt.nocount and "" or " " .. freq[s]))
-  symbols = symbols + 1
-end
-if not getopt.opt.nocount then
-  warn ("total symbols: " .. symbols)
-end

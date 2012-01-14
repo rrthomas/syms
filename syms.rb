@@ -4,15 +4,12 @@
 
 require 'optparse'
 
-NAME = "occurs"
+NAME = "syms"
 
 # Command-line arguments
 pat, nocount = Regexp.new('\w+'), false
 ARGV.options do |opt|
-  opt.banner = "#{NAME} - print, and optionally count, words occurring in a list of files"
-  opt.on("-n", "--nocount",
-         "don't show the frequencies or total") do
-    nocount = true end
+  opt.banner = "#{NAME} - list symbols in input"
   opt.on("-s", "--symbol=REGXEP",
          "symbols are given by REGEXP") do |v|
     pat = Regexp.new(v)
@@ -25,17 +22,9 @@ ARGV.options do |opt|
   opt.parse!
 end
 
-# Read input
-words = {}
+# Process input
 while gets do
   scan(pat).each do |k|
-    words[k] ||= 0
-    words[k] += 1
+    puts k
   end
 end
-
-# Output results
-words.each do |k,v|
-  puts nocount ? k : "#{k} #{v}"
-end
-warn "Total symbols: #{words.length}" unless nocount

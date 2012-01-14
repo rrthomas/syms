@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 
-import sys
 import argparse
 import locale
 import re
 import fileinput
-from collections import Counter
 
 # Command-line arguments
-parser = argparse.ArgumentParser(prog='occurs',
-                                 description='Count the occurrences of each symbol in a file.',
+parser = argparse.ArgumentParser(prog='syms',
+                                 description='List symbols in input.',
                                  epilog='''
 The default symbol type is words (-s "([^\W\d_]+)"); other useful settings
 include:
@@ -19,12 +17,10 @@ include:
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-n', '--nocount', action='store_true',
-                    help='don\'t show the frequencies or total')
 parser.add_argument('-s', '--symbol', metavar='REGEXP', default='[^\W\d_]+',
                     help='symbols are given by REGEXP')
 parser.add_argument('-V', '--version', action='version',
-                    version='%(prog)s 0.9 (27 Sep 2011) by Reuben Thomas <rrt@sc3d.org>')
+                    version='%(prog)s 0.9 (14 Jan 2012) by Reuben Thomas <rrt@sc3d.org>')
 parser.add_argument('file', metavar='FILE', nargs='*')
 
 args = parser.parse_args()
@@ -39,18 +35,8 @@ except re.error as err:
     parser.error(err.args[0])
 
 # Process input
-freq = Counter()
 args.file = args.file or ['-']
 for i, f in enumerate(args.file):
-    with fileinput.input(files=(f,)) as h:
-        for line in h:
-            freq.update(pattern.findall(line))
-
-# Write output
-for s in freq:
-    print(s, end='')
-    if not args.nocount:
-        print(' {}'.format(freq[s]), end='')
-    print('')
-if not args.nocount:
-    print("Total symbols: {}".format(len(freq)), file=sys.stderr)
+    for line in fileinput.input(files=(f,)):
+        for s in pattern.findall(line):
+            print(s)
