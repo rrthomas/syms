@@ -15,10 +15,10 @@ bin_PROGRAMS = occurs
 occurs_LDADD = $(LDADD) $(LIBOBJS)
 occurs_SOURCES = occurs.c cmdline.c cmdline.h
 
-cmdline.c: occurs.ggo
-	gengetopt < occurs.ggo --unamed-opts
+cmdline.c: opts.ggo
+	gengetopt < opts.ggo --unamed-opts
 
-EXTRA_SRCS = occurs.ggo occurs.lua occurs.py occurs.rb occurs.go occurs.sh
+EXTRA_SRCS = opts.ggo occurs.lua occurs.py occurs.rb occurs.go occurs.sh
 EXTRA_DIST = m4/gnulib-cache.m4 $(EXTRA_SRCS)
 
 CLOC = cloc --force-lang="perl",ggo
@@ -40,4 +40,4 @@ check-local: pg100.txt occurs
 	time ./occurs$(EXEEXT) pg100.txt >/dev/null
 
 loc:
-	$(CLOC) --no3 occurs.c $(EXTRA_SRCS) occurs.ggo Makefile.am configure.ac
+	$(CLOC) --no3 occurs.c $(EXTRA_SRCS) opts.ggo Makefile.am configure.ac
