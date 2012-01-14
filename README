@@ -1,8 +1,8 @@
 occurs
 ======
 
-`occurs` finds the number of occurrences of each symbol (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags), and list them sorted lexically or by frequency, with or without the frequency and total number of distinct symbols.
+`occurs' finds the number of occurrences of each symbol (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags), and list them sorted lexically or by frequency, with or without the frequency and total number of distinct symbols.
 
-unique: occurs -n -l "^" -r "$" -s ".*" "$@"
 sort lexically: occurs "$@" | sort
 sort by frequency: occurs "$@" | sort -n -k 2
+unique lines (like uniq, but not just adjacent lines): occurs -n -s "^(.*)$" "$@"
