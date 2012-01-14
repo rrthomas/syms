@@ -8,10 +8,10 @@
 #include <config.h>
 
 #include <assert.h>
-#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <locale.h>
@@ -19,6 +19,8 @@
 #include <regex.h>
 #include "xalloc.h"
 #include "hash.h"
+#include "error.h"
+#include "quote.h"
 
 #include "cmdline.h"
 
@@ -89,18 +91,6 @@ read_symbols(Hash_table *hash)
   return symbols;
 }
 
-static _Noreturn void
-die(const char *fmt, ...)
-{
-  va_list ap;
-  va_start(ap, fmt);
-  fprintf(stderr, PACKAGE ": ");
-  vfprintf(stderr, fmt, ap);
-  putc('\n', stderr);
-  va_end(ap);
-  exit(1);
-}
-
 int
 main(int argc, char *argv[])
 {
@@ -108,7 +98,7 @@ main(int argc, char *argv[])
 
   // Process command-line options
   if (cmdline_parser(argc, argv, &args_info) != 0)
-    exit(1);
+    exit(EXIT_FAILURE);
   if (args_info.help_given)
     cmdline_parser_print_help();
   if (args_info.version_given)
@@ -120,7 +110,7 @@ main(int argc, char *argv[])
     size_t errlen = regerror(err, &symbol_re, NULL, 0);
     char *errbuf = xmalloc(errlen);
     regerror(err, &symbol_re, errbuf, errlen);
-    die("%s", errbuf);
+    error(EXIT_FAILURE, errno, "%s", errbuf);
   }
 
   // Process input
@@ -131,7 +121,7 @@ main(int argc, char *argv[])
     for (unsigned i = 0; i < args_info.inputs_num; i++) {
       if (strcmp(args_info.inputs[i], "-") != 0) {
         if (!freopen(args_info.inputs[i], "r", stdin))
-          die("cannot open `%s'", args_info.inputs[i]);
+          error(EXIT_FAILURE, errno, "cannot open %s", quote(args_info.inputs[i]));
       }
       read_symbols(hash);
       fclose(stdin);
