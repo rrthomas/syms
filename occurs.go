@@ -37,15 +37,6 @@ func showVersion() {
 	os.Stderr.WriteString(progname + " " + version + " " + author + "\n")
 }
 
-func readline (h *bufio.Reader) ([]byte, os.Error) {
-	var line []byte;
-	for l, isPrefix, err := h.ReadLine(); true; l, isPrefix, err = h.ReadLine() {
-		line = append(line, l...)
-		if err != nil || !isPrefix { return line, err }
-	}
-	return line, nil
-}
-
 func main() {
 	defer func () {
 		if r := recover(); r != nil {
@@ -84,10 +75,10 @@ func main() {
 		bh := bufio.NewReader(h)
 	read:
 		for {
-			line, err := readline(bh)
+			line, err := bh.ReadString('\n') // FIXME: Cope with platform line ending
 			switch err {
 			case nil:
-				syms := pattern.FindAllSubmatch(line, -1)
+				syms := pattern.FindAllStringSubmatch(line, -1)
 				for _, matches := range syms {
 					s := string(matches[1])
 					if freq[s] == 0 { symbols++ }
