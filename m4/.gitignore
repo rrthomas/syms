@@ -73,3 +73,5 @@
 /realloc.m4
 /getline.m4
 /stdarg.m4
+/exponentd.m4
+/math_h.m4
