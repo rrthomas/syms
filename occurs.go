@@ -66,7 +66,7 @@ func main() {
 	if err != nil { panic(err) }
 
 	// Process input
-	symbol := make([]string, 0, 0)
+	symbols := 0
 	freq := make(map[string]int)
 	args := flag.Args()
 	if flag.NArg() == 0 { args = append(args, "-") }
@@ -90,7 +90,7 @@ func main() {
 				syms := pattern.FindAllSubmatch(line, -1)
 				for _, matches := range syms {
 					s := string(matches[1])
-					if freq[s] == 0 { symbol = append(symbol, s) }
+					if freq[s] == 0 { symbols++ }
 					freq[s] += 1
 				}
 			case os.EOF:
@@ -102,10 +102,10 @@ func main() {
 	}
 
 	// Print out symbol data
-	for _, s := range symbol {
+	for s, _ := range freq {
 		fmt.Print(s)
 		if !*nocount { fmt.Printf(" %d", freq[s]) }
 		fmt.Print("\n")
 	}
-	if !*nocount { fmt.Fprintf(os.Stderr, "Total symbols: %d\n", len(symbol)) }
+	if !*nocount { fmt.Fprintf(os.Stderr, "Total symbols: %d\n", symbols) }
 }
