@@ -111,3 +111,13 @@
 /realloc.c
 /stdarg.in.h
 /itold.c
+/c-ctype.c
+/c-ctype.h
+/c-strcase.h
+/c-strcasecmp.c
+/c-strcaseeq.h
+/c-strncasecmp.c
+/quote.c
+/quote.h
+/quotearg.c
+/quotearg.h

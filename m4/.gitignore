@@ -75,3 +75,5 @@
 /stdarg.m4
 /exponentd.m4
 /math_h.m4
+/quote.m4
+/quotearg.m4
