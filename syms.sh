@@ -5,4 +5,4 @@
 
 # Suggestion from Underhanded C contest 2006:
 #tr "[:space:]" "[\n*]" | sort | awk 'length($0)>0' | uniq -c
-tr -cs A-Za-z '\n' < $1 | grep [[:print:]] | sort | uniq -c | sort
+tr -cs A-Za-z '\n' < $1 | grep [[:print:]]
