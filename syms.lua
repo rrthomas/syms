@@ -11,7 +11,7 @@ prog = {
 }
 
 require "std"
-require "rex_posix"
+rex_posix = require "rex_posix"
 
 -- Command-line options
 options = {
@@ -21,7 +21,7 @@ options = {
 -- Parse command-line args
 os.setlocale ("")
 getopt.processArgs ()
-local symbolPat = getopt.opt.symbol or "([[:alpha:]]+)"
+local symbolPat = getopt.opt.symbol and table.remove (getopt.opt.symbol) or "([[:alpha:]]+)"
 
 -- Compile symbol-matching regexp
 local ok, pattern = pcall (rex_posix.new, symbolPat)
@@ -33,7 +33,7 @@ end
 io.processFiles (function (file, number)
                    for line in io.lines () do
                      for s in rex_posix.gmatch (line, pattern) do
-                       io.writeline (s)
+                       io.writelines (s)
                      end
                    end
                end)
