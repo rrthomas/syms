@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 prog = {
   name = "syms",
-  banner = "syms 0.85 (14 Jan 2012) by Reuben Thomas <rrt@sc3d.org>",
+  banner = "syms 0.86 (05 Oct 2012) by Reuben Thomas <rrt@sc3d.org>",
   purpose = "List symbols in input.",
   notes = "The default symbol type is words (-s \"([[:alpha:]]+)\"); other useful settings\n" ..
     "include:\n\n" ..
