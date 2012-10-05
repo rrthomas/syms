@@ -4,14 +4,15 @@ package main
 
 import (
 	"bufio"
-	"os"
-	"fmt"
 	"flag"
+	"fmt"
+	"io"
+	"os"
 	"regexp"
 )
 
 var progname = "syms"
-var version = "0.9 (14 Jan 2012)"
+var version = "0.91 (05 Oct 2012)"
 var author = "Reuben Thomas <rrt@sc3d.org>"
 
 // Command-line arguments
@@ -37,7 +38,7 @@ func showVersion() {
 }
 
 func main() {
-	defer func () {
+	defer func() {
 		if r := recover(); r != nil {
 			fmt.Fprintf(os.Stderr, "%s: %s\n", progname, r)
 			os.Exit(1)
@@ -48,24 +49,38 @@ func main() {
 
 	// Parse command-line args
 	flag.Parse()
-	if *versionFlag { showVersion(); os.Exit(0) }
-	if *helpFlag { usage(); os.Exit(0) }
+	if *versionFlag {
+		showVersion()
+		os.Exit(0)
+	}
+	if *helpFlag {
+		usage()
+		os.Exit(0)
+	}
 
 	// Compile symbol-matching regexp
 	pattern, err := regexp.Compile(*symbol)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	// Process input
 	args := flag.Args()
-	if flag.NArg() == 0 { args = append(args, "-") }
+	if flag.NArg() == 0 {
+		args = append(args, "-")
+	}
 	for i := range args {
-		var h *os.File;
+		var h *os.File
 		f := args[i]
 		if f != "-" {
-			var err os.Error
+			var err error
 			h, err = os.Open(f)
-			if err != nil { panic(err) }
-		} else { h = os.Stdin }
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			h = os.Stdin
+		}
 
 		// Read file into symbol table
 		bh := bufio.NewReader(h)
@@ -78,7 +93,7 @@ func main() {
 				for _, matches := range syms {
 					fmt.Printf("%s\n", string(matches[1]))
 				}
-			case os.EOF:
+			case io.EOF:
 				break read
 			default:
 				panic(err)
