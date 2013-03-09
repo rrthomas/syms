@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 prog = {
   name = "syms",
-  banner = "syms 0.86 (05 Oct 2012) by Reuben Thomas <rrt@sc3d.org>",
+  banner = "syms 0.87 (09 Mar 2013) by Reuben Thomas <rrt@sc3d.org>",
   purpose = "List symbols in input.",
   notes = "The default symbol type is words (-s \"([[:alpha:]]+)\"); other useful settings\n" ..
     "include:\n\n" ..
@@ -15,12 +15,12 @@ rex_posix = require "rex_posix"
 
 -- Command-line options
 options = {
-  Option {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
+  {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
 }
 
 -- Parse command-line args
 os.setlocale ("")
-getopt.processArgs ()
+getopt.processArgs (prog)
 local symbolPat = getopt.opt.symbol and table.remove (getopt.opt.symbol) or "([[:alpha:]]+)"
 
 -- Compile symbol-matching regexp
