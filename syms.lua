@@ -7,16 +7,14 @@ prog = {
     "include:\n\n" ..
     "  non-white-space characters: -s \"[^[:space:]]+\"\n" ..
     "  alphanumerics and underscores: -s \"[[:alnum:]_]+\"\n" ..
-    "  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[[:space:]>]\""
+    "  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[[:space:]>]\"",
+  options = {
+    {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
+  }
 }
 
 require "std"
 rex_posix = require "rex_posix"
-
--- Command-line options
-options = {
-  {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
-}
 
 -- Parse command-line args
 os.setlocale ("")
