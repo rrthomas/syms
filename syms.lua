@@ -1,25 +1,36 @@
 #!/usr/bin/env lua
-prog = {
-  name = "syms",
-  version = "syms 0.87 (09 Mar 2013) by Reuben Thomas <rrt@sc3d.org>",
-  purpose = "List symbols in input.",
-  notes = "The default symbol type is words (-s \"([[:alpha:]]+)\"); other useful settings\n" ..
-    "include:\n\n" ..
-    "  non-white-space characters: -s \"[^[:space:]]+\"\n" ..
-    "  alphanumerics and underscores: -s \"[[:alnum:]_]+\"\n" ..
-    "  XML tags: -s \"<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[[:space:]>]\"",
-  options = {
-    {{"symbol", "s"}, "symbols are given by REGEXP", "Req", "REGEXP"},
-  }
-}
+spec = [=[
+syms 0.88
+Copyright 2014 by Reuben Thomas <rrt@sc3d.org>
+
+Usage: syms
+
+List symbols in input.
+
+The default symbol type is words (-s "([[:alpha:]]+)"); other useful settings
+include:
+
+  non-white-space characters: -s "[^[:space:]]+"
+  alphanumerics and underscores: -s "[[:alnum:]_]+"
+  XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[[:space:]>]"
+
+Options:
+
+  -s, --symbol=REGEXP      symbols are given by REGEXP
+  -h, --help               display this help, then exit
+      --version            display version information, then exit
+]=]
 
 require "std"
 rex_posix = require "rex_posix"
 
+
 -- Parse command-line args
 os.setlocale ("")
-getopt.processArgs (prog)
-local symbolPat = getopt.opt.symbol and table.remove (getopt.opt.symbol) or "([[:alpha:]]+)"
+local OptionParser = require "std.optparse"
+local parser = OptionParser (spec)
+_G.arg, opts = parser:parse (_G.arg)
+local symbolPat = opts.symbol or "([[:alpha:]]+)"
 
 -- Compile symbol-matching regexp
 local ok, pattern = pcall (rex_posix.new, symbolPat)
