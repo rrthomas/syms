@@ -3,7 +3,7 @@ spec = [=[
 syms 0.88
 Copyright (c) 2014 Reuben Thomas <rrt@sc3d.org>
 
-Usage: syms
+Usage: syms [OPTION...] [FILE...]
 
 List symbols in input.
 
