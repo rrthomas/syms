@@ -17,7 +17,7 @@ include:
 Options:
 
   -s, --symbol=REGEXP      symbols are given by REGEXP
-  -h, --help               display this help, then exit
+      --help               display this help, then exit
       --version            display version information, then exit
 ]=]
 
