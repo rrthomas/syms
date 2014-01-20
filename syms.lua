@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 spec = [=[
 syms 0.88
-Copyright 2014 by Reuben Thomas <rrt@sc3d.org>
+Copyright (c) 2014 Reuben Thomas <rrt@sc3d.org>
 
 Usage: syms
 
