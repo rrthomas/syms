@@ -16,7 +16,7 @@ ARGV.options do |opt|
   end
   opt.on("-V", "--version",
          "show script version and exit") do
-    puts "#{NAME} 0.9 (27 Sep 2011)"
+    puts "#{NAME} 0.91 (08 Dec 2014)"
     exit
   end
   opt.parse!
