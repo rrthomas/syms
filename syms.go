@@ -1,4 +1,4 @@
-#!/usr/bin/env gorun
+// FIXME: #!/usr/bin/env gorun
 
 package main
 
@@ -9,10 +9,11 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"github.com/famz/SetLocale"
 )
 
 var progname = "syms"
-var version = "0.91 (05 Oct 2012)"
+var version = "0.92 (08 Dec 2014)"
 var author = "Reuben Thomas <rrt@sc3d.org>"
 
 // Command-line arguments
@@ -45,7 +46,7 @@ func main() {
 		}
 	}()
 
-	// FIXME: setlocale(locale.LC_ALL, '')
+	SetLocale.SetLocale(SetLocale.LC_ALL, "")
 
 	// Parse command-line args
 	flag.Parse()
