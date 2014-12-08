@@ -52,54 +52,51 @@ func main() {
 	flag.Parse()
 	if *versionFlag {
 		showVersion()
-		os.Exit(0)
-	}
-	if *helpFlag {
+	} else if *helpFlag {
 		usage()
-		os.Exit(0)
-	}
-
-	// Compile symbol-matching regexp
-	pattern, err := regexp.Compile(*symbol)
-	if err != nil {
-		panic(err)
-	}
-
-	// Process input
-	args := flag.Args()
-	if flag.NArg() == 0 {
-		args = append(args, "-")
-	}
-	for i := range args {
-		var h *os.File
-		f := args[i]
-		if f != "-" {
-			var err error
-			h, err = os.Open(f)
-			if err != nil {
-				panic(err)
-			}
-		} else {
-			h = os.Stdin
+	} else {
+		// Compile symbol-matching regexp
+		pattern, err := regexp.Compile(*symbol)
+		if err != nil {
+			panic(err)
 		}
 
-		// Read file into symbol table
-		scanner := bufio.NewScanner(h)
-	read:
-		for scanner.Scan() {
-			line := scanner.Text()
-			switch scanner.Err() {
-			case nil:
-				syms := pattern.FindAllStringSubmatch(line, -1)
-				for _, matches := range syms {
-					fmt.Println(string(matches[1]))
+		// Process input
+		args := flag.Args()
+		if flag.NArg() == 0 {
+			args = append(args, "-")
+		}
+		for i := range args {
+			var h *os.File
+			f := args[i]
+			if f != "-" {
+				var err error
+				h, err = os.Open(f)
+				if err != nil {
+					panic(err)
 				}
-			case io.EOF:
-				break read
-			default:
-				panic(err)
+			} else {
+				h = os.Stdin
 			}
+
+			// Read file into symbol table
+			scanner := bufio.NewScanner(h)
+		read:
+			for scanner.Scan() {
+			line := scanner.Text()
+				switch scanner.Err() {
+				case nil:
+					syms := pattern.FindAllStringSubmatch(line, -1)
+					for _, matches := range syms {
+						fmt.Println(string(matches[1]))
+					}
+				case io.EOF:
+					break read
+				default:
+					panic(err)
+				}
+			}
+			h.Close()
 		}
-		h.Close()
 	}
 }
