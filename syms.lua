@@ -1,6 +1,6 @@
 #!/usr/bin/env lua
 spec = [=[
-syms 0.88
+syms 0.90
 Copyright (c) 2014 Reuben Thomas <rrt@sc3d.org>
 
 Usage: syms [OPTION...] [FILE...]
@@ -21,7 +21,7 @@ Options:
       --version            display version information, then exit
 ]=]
 
-require "std"
+local std = require "std"
 rex_posix = require "rex_posix"
 
 
@@ -39,10 +39,9 @@ if not ok then
 end
 
 -- Process input
-io.processFiles (function (file, number)
-                   for line in io.lines () do
-                     for s in rex_posix.gmatch (line, pattern) do
-                       io.writelines (s)
-                     end
-                   end
-               end)
+std.io.process_files (function (file, number)
+                        -- FIXME: make slurp work in pipes
+                        for s in rex_posix.gmatch (std.io.slurp (), pattern) do
+                          std.io.writelines (s)
+                        end
+                      end)
