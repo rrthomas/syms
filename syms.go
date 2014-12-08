@@ -73,13 +73,11 @@ func main() {
 			scanner := bufio.NewScanner(h)
 			for scanner.Scan() {
 			line := scanner.Text()
-				switch scanner.Err() {
-				case nil:
-					for _, matches := range pattern.FindAllStringSubmatch(line, -1) {
-						fmt.Println(string(matches[1]))
-					}
-				default:
+				if scanner.Err() != nil {
 					log.Fatal(err)
+				}
+				for _, matches := range pattern.FindAllStringSubmatch(line, -1) {
+					fmt.Println(string(matches[1]))
 				}
 			}
 			h.Close()
