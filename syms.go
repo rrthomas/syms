@@ -6,7 +6,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io"
 	"os"
 	"log"
 	"regexp"
@@ -72,17 +71,13 @@ func main() {
 
 			// Read file into symbol table
 			scanner := bufio.NewScanner(h)
-		read:
 			for scanner.Scan() {
 			line := scanner.Text()
 				switch scanner.Err() {
 				case nil:
-					syms := pattern.FindAllStringSubmatch(line, -1)
-					for _, matches := range syms {
+					for _, matches := range pattern.FindAllStringSubmatch(line, -1) {
 						fmt.Println(string(matches[1]))
 					}
-				case io.EOF:
-					break read
 				default:
 					log.Fatal(err)
 				}
