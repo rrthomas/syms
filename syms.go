@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"log"
 	"regexp"
 	"github.com/famz/SetLocale"
 )
@@ -39,13 +40,6 @@ func showVersion() {
 }
 
 func main() {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Fprintf(os.Stderr, "%s: %s\n", progname, r)
-			os.Exit(1)
-		}
-	}()
-
 	SetLocale.SetLocale(SetLocale.LC_ALL, "")
 
 	// Parse command-line args
@@ -67,16 +61,13 @@ func main() {
 			args = append(args, "-")
 		}
 		for i := range args {
-			var h *os.File
+			h := os.Stdin
 			f := args[i]
 			if f != "-" {
-				var err error
 				h, err = os.Open(f)
 				if err != nil {
-					panic(err)
+					log.Fatal(err)
 				}
-			} else {
-				h = os.Stdin
 			}
 
 			// Read file into symbol table
@@ -93,7 +84,7 @@ func main() {
 				case io.EOF:
 					break read
 				default:
-					panic(err)
+					log.Fatal(err)
 				}
 			}
 			h.Close()
