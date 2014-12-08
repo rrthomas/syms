@@ -84,15 +84,15 @@ func main() {
 		}
 
 		// Read file into symbol table
-		bh := bufio.NewReader(h)
+		scanner := bufio.NewScanner(h)
 	read:
-		for {
-			line, err := bh.ReadString('\n') // FIXME: Cope with platform line ending
-			switch err {
+		for scanner.Scan() {
+			line := scanner.Text()
+			switch scanner.Err() {
 			case nil:
 				syms := pattern.FindAllStringSubmatch(line, -1)
 				for _, matches := range syms {
-					fmt.Printf("%s\n", string(matches[1]))
+					fmt.Println(string(matches[1]))
 				}
 			case io.EOF:
 				break read
