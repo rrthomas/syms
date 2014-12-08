@@ -23,8 +23,8 @@ ARGV.options do |opt|
 end
 
 # Process input
-while gets do
-  scan(pat).each do |k|
+ARGF.each do |s|
+  s.scan(pat).each do |k|
     puts k
   end
 end
