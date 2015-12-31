@@ -6,8 +6,7 @@ import re
 import fileinput
 
 # Command-line arguments
-parser = argparse.ArgumentParser(prog='syms',
-                                 description='List symbols in input.',
+parser = argparse.ArgumentParser(description='List symbols in input.',
                                  epilog='''
 The default symbol type is words (-s "([^\W\d_]+)"); other useful settings
 include:
