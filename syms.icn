@@ -1,0 +1,41 @@
+#!/usr/bin/env icon
+
+# By Reuben Thomas, with help from regexp example in http://progopedia.com/language/icon/
+# FIXME: Locale (inc. UTF-8)
+
+link options
+link regexp
+
+$define Name "syms"
+
+procedure die(message)
+  stop(Name || ": " || message)
+end
+
+procedure main(args)
+  local opt, pat, words, intext, line
+  opt := options(args, "-s:-symbol:-version-help")
+  # FIXME: Die if invalid regexp given
+  pat := RePat(\opt["s"] | \opt["symbol"] | "\\w+")
+
+  if \opt["version"] then write(Name || " 0.90 (15 Aug 2017)") & exit()
+
+  if *args == 0 | \opt["help"] then
+    write("_
+    Usage: syms [OPTION...] FILE...\n_
+    List symbols in input.\n_
+    \n_
+    Options:\n_
+    -s, -symbol REGEXP      symbols are given by REGEXP\n" ||
+   "    -help               display this help, then exit\n" ||
+   "    -version            display version information, then exit_
+   ") & exit()
+  
+  words := set()
+  every name := !args do {
+    intext := open(name) | die("could not open file `" || name || "'")
+    while line := read(intext) do
+      line ? while tab(ReFind(pat)) do insert(words, tab(ReMatch(pat)))
+  }
+  every write(!words)
+end
