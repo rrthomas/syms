@@ -7,7 +7,7 @@ require 'optparse'
 NAME = "syms"
 
 # Command-line arguments
-pat, nocount = Regexp.new('\w+'), false
+pat = Regexp.new('\w+')
 ARGV.options do |opt|
   opt.banner = "#{NAME} - list symbols in input"
   opt.on("-s", "--symbol=REGXEP",
