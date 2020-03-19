@@ -4,7 +4,7 @@ package main
 
 import (
 	"bufio"
-	"flag"
+	"flag" // FIXME: use getopt or go-flags
 	"fmt"
 	"os"
 	"log"
