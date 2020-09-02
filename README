@@ -1,7 +1,7 @@
 syms
 ====
 
-`syms’ lists symbols in its input (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags).
+`syms' lists symbols in its input (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags).
 
 unique symbols, sorted lexically: syms "$@" | sort | uniq
 number of unique symbols: syms "$@" | sort | uniq | wc -l
