@@ -30,7 +30,7 @@ procedure main(args)
    "    -help               display this help, then exit\n" ||
    "    -version            display version information, then exit_
    ") & exit()
-  
+
   words := set()
   every name := !args do {
     intext := open(name) | die("could not open file `" || name || "'")
