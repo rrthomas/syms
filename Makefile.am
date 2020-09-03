@@ -18,8 +18,8 @@ syms_SOURCES = syms.c cmdline.c cmdline.h
 cmdline.c: opts.ggo
 	gengetopt < opts.ggo --unamed-opts
 
-EXTRA_SRCS = opts.ggo syms.lua syms.py syms.rb syms.go syms.sh
-EXTRA_DIST = m4/gnulib-cache.m4 $(EXTRA_SRCS)
+EXTRA_SRCS = opts.ggo syms.lua syms.py syms.rb syms.go syms.sh src/main.rs
+EXTRA_DIST = m4/gnulib-cache.m4 $(EXTRA_SRCS) Cargo.toml
 
 CLOC = cloc --force-lang="perl",ggo
 

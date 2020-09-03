@@ -1,0 +1,10 @@
+[package]
+name = "syms"
+version = "0.1.0"
+authors = ["Reuben Thomas"]
+edition = "2018"
+
+[dependencies]
+libc = "0.2"
+clap = "2"
+regex = "1"

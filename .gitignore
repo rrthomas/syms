@@ -1,6 +1,7 @@
 *~
 .deps
 *.o
+/Cargo.lock
 /COPYING
 /Makefile
 /Makefile.in
@@ -25,3 +26,4 @@
 /cmdline.h
 /snippet
 /pg100.txt
+/target
