@@ -4,7 +4,7 @@ use std::ffi::CString;
 use clap::{App, Arg, Error};
 use regex::{Regex};
 
-fn match_lines(pattern: &Regex, fp: &mut dyn BufRead)
+fn match_lines(pattern: &Regex, fp: impl BufRead)
 {
     for line in fp.lines() {
         if let Ok(ip) = line {
@@ -63,9 +63,9 @@ include:
     // Process input
     for f in matches.values_of("FILE").unwrap() {
         if f == "-" {
-            match_lines(&pattern, &mut io::stdin().lock());
+            match_lines(&pattern, io::stdin().lock());
         } else {
-            let mut fp = match File::open(f) {
+            let fp = match File::open(f) {
                 Ok(file) => io::BufReader::new(file),
                 Err(e) => Error::exit(&Error {
                     message: e.to_string(),
@@ -73,7 +73,7 @@ include:
                     info: None
                 }),
             };
-            match_lines(&pattern, &mut fp);
+            match_lines(&pattern, fp);
         }
     }
 }
