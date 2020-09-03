@@ -40,9 +40,6 @@ for w in $warnings; do
 done
 dnl Add an extra warning
 gl_WARN_ADD([-Wstrict-overflow=1])
-dnl Add some more safety measures
-gl_WARN_ADD([-D_FORTIFY_SOURCE=2])
-gl_WARN_ADD([-fmudflap])
 
 dnl Checks for functions and headers
 AC_HEADER_STDC

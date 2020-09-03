@@ -1,10 +1,8 @@
 // syms
-// (c) Reuben Thomas (rrt@sc3d.org)
+// (c) Reuben Thomas <rrt@sc3d.org>
 
 
-// FIXME: Cope with wide character encodings.
-
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
