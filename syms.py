@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import os
+import sys
 import argparse
 import locale
 import re
@@ -16,7 +18,7 @@ include:
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-s', '--symbol', metavar='REGEXP', default='[^\W\d_]+',
+parser.add_argument('-s', '--symbol', metavar='REGEXP', type=os.fsencode, default=b'[^\W\d_]+',
                     help='symbols are given by REGEXP')
 parser.add_argument('-V', '--version', action='version',
                     version='%(prog)s 0.9 (14 Jan 2012) by Reuben Thomas <rrt@sc3d.org>')
@@ -35,7 +37,7 @@ except re.error as err:
 
 # Process input
 args.file = args.file or ['-']
-for i, f in enumerate(args.file):
-    for line in fileinput.input(files=(f,)):
+for f in args.file:
+    for line in fileinput.input(mode='rb', files=(f,)):
         for s in pattern.findall(line):
-            print(s)
+            sys.stdout.buffer.write(s + b"\n")
