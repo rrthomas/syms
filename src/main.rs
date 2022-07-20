@@ -56,7 +56,7 @@ include:
                     kind: clap::ErrorKind::InvalidValue,
                     info: None
                 }),
-            error => panic!(error),
+            error => panic!("{}", error),
         },
     };
 
