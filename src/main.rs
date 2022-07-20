@@ -26,12 +26,12 @@ fn main()
              .short("s")
              .long("symbol")
              .takes_value(true)
-             .default_value("[^\\W\\d_]+")
+             .default_value("[[:alpha:]]+")
              .help("symbols are given by REGEXP"))
         .arg(Arg::with_name("FILE")
              .default_value("-")
              .multiple(true))
-        .after_help("The default symbol type is words (-s \"([^\\W\\d_]+)\"); other useful settings
+        .after_help("The default symbol type is words (-s \"([[:alpha:]]+)\"); other useful settings
 include:
 
   non-white-space characters: -s \"(\\S+)\"
