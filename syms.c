@@ -19,8 +19,8 @@
 
 struct gengetopt_args_info args_info;
 
-static char *
-get_symbol(regex_t *re, char *s, char **end)
+static const char *
+get_symbol(regex_t *re, const char *s, const char **end)
 {
   regmatch_t match[1];
   if (regexec(re, s, 1, match, 0) != 0)
@@ -60,14 +60,9 @@ main(int argc, char *argv[])
     }
     size_t len;
     for (char *line = NULL; getline(&line, &len, stdin) != -1; line = NULL) {
-      char *symbol = NULL, *p = line;
-      for (char *end; (symbol = get_symbol(&re, p, &end)); p = end) {
-        // Temporarily insert a NUL to make the symbol a string
-        char c = *end;
-        *end = '\0';
-        printf("%s\n", symbol);
-        *end = c; // Restore the overwritten character
-      }
+      const char *symbol = NULL, *p = line;
+      for (const char *end; (symbol = get_symbol(&re, p, &end)); p = end)
+        printf("%.*s\n", (int)(end - symbol), symbol);
       free(line);
     }
     fclose(stdin);
