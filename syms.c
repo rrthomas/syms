@@ -37,10 +37,6 @@ main(int argc, char *argv[])
   // Process command-line options
   if (cmdline_parser(argc, argv, &args_info) != 0)
     exit(EXIT_FAILURE);
-  if (args_info.help_given)
-    cmdline_parser_print_help();
-  if (args_info.version_given)
-    cmdline_parser_print_version();
 
   // Compile regex
   regex_t re;
