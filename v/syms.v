@@ -62,11 +62,12 @@ The default symbol type is words (-s "$default_symbol"); other useful settings i
 
 	additional_args := fp.finalize() ?
 	for file in additional_args {
-		// FIXME: read one line at a time
-		lines := os.read_lines(file) or {
+		mut stdin := os.stdin()
+		stdin.reopen(file, 'r') or {
 			error_exit(1, 'cannot open \'$file\'')
 		}
-		for l in lines {
+		for !stdin.eof() {
+			l := os.get_line()
 			for start, end := isize(0), isize(0); true; start = end {
 				start, end = get_symbol(&re, l, start)
 				if start == -1 {
