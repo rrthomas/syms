@@ -45,7 +45,7 @@ main(int argc, char *argv[])
     size_t errlen = regerror(err, &re, NULL, 0);
     char *errbuf = xmalloc(errlen);
     regerror(err, &re, errbuf, errlen);
-    error(EXIT_FAILURE, errno, "%s", errbuf);
+    error(EXIT_FAILURE, 0, "%s", errbuf);
   }
 
   // Process input
