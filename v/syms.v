@@ -2,20 +2,23 @@ module main
 
 import os
 import flag
-
 import v.vmod
+
 const manifest = vmod.from_file('v.mod') or { panic(err) }
 
 #include "regex.h"
 
 const reg_extended = 1
+
 [typedef]
 struct C.regex_t {}
+
 [typedef]
 struct C.regmatch_t {
 	rm_so isize
 	rm_eo isize
 }
+
 fn C.regcomp(&C.regex_t, &char, int) int
 fn C.regexec(&C.regex_t, &char, usize, []C.regmatch_t, int) int
 fn C.regerror(int, &C.regex_t, &char, usize) usize
@@ -26,10 +29,9 @@ fn error_exit(code int, msg string) {
 	exit(code)
 }
 
-fn get_symbol(re &C.regex_t, s string, start isize) (isize, isize)
-{
+fn get_symbol(re &C.regex_t, s string, start isize) (isize, isize) {
 	matches := []C.regmatch_t{len: 2}
-	if C.regexec(re, unsafe {s.str + start}, 1, matches.data, 0) != 0 {
+	if C.regexec(re, unsafe { s.str + start }, 1, matches.data, 0) != 0 {
 		return -1, -1
 	}
 	return start + matches[0].rm_so, start + matches[0].rm_eo
@@ -60,12 +62,10 @@ The default symbol type is words (-s "$default_symbol"); other useful settings i
 		error_exit(1, unsafe { (&errbuf[0]).vstring() })
 	}
 
-	additional_args := fp.finalize() ?
+	additional_args := fp.finalize()?
 	for file in additional_args {
 		mut stdin := os.stdin()
-		stdin.reopen(file, 'r') or {
-			error_exit(1, 'cannot open \'$file\'')
-		}
+		stdin.reopen(file, 'r') or { error_exit(1, 'cannot open \'$file\'') }
 		for !stdin.eof() {
 			l := os.get_line()
 			for start, end := isize(0), isize(0); true; start = end {
