@@ -53,7 +53,7 @@ The default symbol type is words (-s "$default_symbol"); other useful settings i
 	fp.skip_executable()
 
 	// Compile regex
-	re := &C.regex_t(0)
+	re := C.regex_t{}
 	err := C.regcomp(&re, symbol.str, reg_extended)
 	if err != 0 {
 		errlen := C.regerror(err, &re, &char(0), 0)
