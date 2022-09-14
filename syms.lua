@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 spec = [=[
-syms 0.90
-Copyright (c) 2014 Reuben Thomas <rrt@sc3d.org>
+syms 0.91
+Copyright (c) 2022 Reuben Thomas <rrt@sc3d.org>
 
 Usage: syms [OPTION...] [FILE...]
 
@@ -35,7 +35,7 @@ local symbolPat = opts.symbol or "([[:alpha:]]+)"
 -- Compile symbol-matching regexp
 local ok, pattern = pcall (rex_posix.new, symbolPat)
 if not ok then
-  die (pattern)
+  std.io.die (pattern)
 end
 
 -- Process input
