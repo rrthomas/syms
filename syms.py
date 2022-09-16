@@ -36,7 +36,6 @@ except re.error as err:
     parser.error(err.args[0])
 
 # Process input
-for f in args.file or ['-']:
-    for line in fileinput.input(mode='rb', files=(f,)):
-        for s in pattern.findall(line):
-            sys.stdout.buffer.write(s + b"\n")
+for line in fileinput.input(mode='rb', files=args.file or ['-']):
+    for s in pattern.findall(line):
+        sys.stdout.buffer.write(s + b"\n")
