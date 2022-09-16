@@ -3,13 +3,13 @@ dnl
 dnl Copyright (c) 2009, 2011 Reuben Thomas
 
 dnl Initialise autoconf and automake
-AC_INIT(syms, 0.592, rrt@sc3d.org)
+AC_INIT([syms],[0.592],[rrt@sc3d.org])
 AM_INIT_AUTOMAKE([-Wall -Werror std-options])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 dnl Set up C compiler
-AC_GNU_SOURCE
-AC_PROG_CC_C99
+AC_USE_SYSTEM_EXTENSIONS
+AC_PROG_CC
 gl_EARLY
 AM_PROG_CC_C_O
 
@@ -41,11 +41,9 @@ done
 dnl Add an extra warning
 gl_WARN_ADD([-Wstrict-overflow=1])
 
-dnl Checks for functions and headers
-AC_HEADER_STDC
 gl_INIT
 
 dnl Generate output
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES(Makefile lib/Makefile)
 AC_OUTPUT
