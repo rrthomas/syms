@@ -19,7 +19,7 @@ proc die(s: string) =
 # Command-line arguments
 var p = newParser(progName):
   help("List symbols in input.")
-  option("-s", "--symbol", default = "[^\\W\\d_]+",
+  option("-s", "--symbol", default = "[\\w\\d_]+",
          help = "symbols are given by the regexp SYMBOL")
   flag("-V", "--version",
        help = "show program's version number and exit")
@@ -32,7 +32,7 @@ try:
   if opts.help:
     echo """
 
-The default symbol type is words (-s "[^\W\d_]+"); other useful settings
+The default symbol type is words (-s "[\w\d_]+"); other useful settings
 include:
 
   non-white-space characters: -s "\S+"

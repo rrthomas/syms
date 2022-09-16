@@ -10,7 +10,7 @@ import fileinput
 # Command-line arguments
 parser = argparse.ArgumentParser(description='List symbols in input.',
                                  epilog='''
-The default symbol type is words (-s "[^\W\d_]+"); other useful settings
+The default symbol type is words (-s "[\w\d_]+"); other useful settings
 include:
 
   non-white-space characters: -s "\S+"
@@ -18,7 +18,7 @@ include:
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('-s', '--symbol', metavar='REGEXP', type=os.fsencode, default=b'[^\W\d_]+',
+parser.add_argument('-s', '--symbol', metavar='REGEXP', type=os.fsencode, default=b'[\w\d_]+',
                     help='symbols are given by REGEXP')
 parser.add_argument('-V', '--version', action='version',
                     version='%(prog)s 0.9 (14 Jan 2012) by Reuben Thomas <rrt@sc3d.org>')
