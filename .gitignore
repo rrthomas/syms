@@ -3,6 +3,7 @@
 *.o
 /Cargo.lock
 /COPYING
+/INSTALL
 /Makefile
 /Makefile.in
 /aclocal.m4
