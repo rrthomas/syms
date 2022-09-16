@@ -7,7 +7,7 @@ import logging
 import strformat
 
 
-let progName = lastPathPart(getAppFilename())
+const progName = "syms" # FIXME: allow newParser to take a variable, then use: lastPathPart(getAppFilename())
 
 # Error messages
 var logger = newConsoleLogger(fmtStr = &"{progName}: ")
@@ -17,7 +17,7 @@ proc die(s: string) =
   quit(1)
 
 # Command-line arguments
-var p = newParser("syms"):
+var p = newParser(progName):
   help("List symbols in input.")
   option("-s", "--symbol", default = "[^\\W\\d_]+",
          help = "symbols are given by the regexp SYMBOL")
