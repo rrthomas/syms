@@ -1,7 +1,6 @@
 import os
 import system
 import argparse
-#import posix
 import re
 import logging
 import strformat
@@ -19,7 +18,7 @@ proc die(s: string) =
 # Command-line arguments
 var p = newParser(progName):
   help("List symbols in input.")
-  option("-s", "--symbol", default = "[\\w\\d_]+",
+  option("-s", "--symbol", default = "\\p{L}+",
          help = "symbols are given by the regexp SYMBOL")
   flag("-V", "--version",
        help = "show program's version number and exit")
@@ -32,7 +31,7 @@ try:
   if opts.help:
     echo """
 
-The default symbol type is words (-s "[\w\d_]+"); other useful settings
+The default symbol type is words (-s "\p{L}+"); other useful settings
 include:
 
   non-white-space characters: -s "\S+"
@@ -40,14 +39,10 @@ include:
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]""""
     quit(0)
   if opts.version:
-    echo &"{progName} 0.11 (16 Sep 2022) by Reuben Thomas <rrt@sc3d.org>"
+    echo &"{progName} 0.12 (16 Sep 2022) by Reuben Thomas <rrt@sc3d.org>"
     quit(0)
 
-  # Set locale
-  #discard setlocale(LC_ALL, "")
-
   # Compile symbol-matching regexp
-  # FIXME: use locale-sensitive regexs
   let pattern = re(opts.symbol)
 
   # Process input
