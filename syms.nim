@@ -32,15 +32,15 @@ try:
   if opts.help:
     echo """
 
-The default symbol type is words (-s "([^\W\d_]+)"); other useful settings
+The default symbol type is words (-s "[^\W\d_]+"); other useful settings
 include:
 
-  non-white-space characters: -s "(\S+)"
-  alphanumerics and underscores: -s "(\w+)"
+  non-white-space characters: -s "\S+"
+  alphanumerics and underscores: -s "\w+"
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]""""
     quit(0)
   if opts.version:
-    echo &"{progName} 0.1 (26 Sep 2020) by Reuben Thomas <rrt@sc3d.org>"
+    echo &"{progName} 0.11 (16 Sep 2022) by Reuben Thomas <rrt@sc3d.org>"
     quit(0)
 
   # Set locale

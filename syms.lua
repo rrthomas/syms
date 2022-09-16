@@ -7,7 +7,7 @@ Usage: syms [OPTION...] [FILE...]
 
 List symbols in input.
 
-The default symbol type is words (-s "([[:alpha:]]+)"); other useful settings
+The default symbol type is words (-s "[[:alpha:]]+"); other useful settings
 include:
 
   non-white-space characters: -s "[^[:space:]]+"
@@ -30,7 +30,7 @@ os.setlocale ("")
 local OptionParser = require "std.optparse"
 local parser = OptionParser (spec)
 _G.arg, opts = parser:parse (_G.arg)
-local symbolPat = opts.symbol or "([[:alpha:]]+)"
+local symbolPat = opts.symbol or "[[:alpha:]]+"
 
 -- Compile symbol-matching regexp
 local ok, pattern = pcall (rex_posix.new, symbolPat)

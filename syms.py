@@ -10,11 +10,11 @@ import fileinput
 # Command-line arguments
 parser = argparse.ArgumentParser(description='List symbols in input.',
                                  epilog='''
-The default symbol type is words (-s "([^\W\d_]+)"); other useful settings
+The default symbol type is words (-s "[^\W\d_]+"); other useful settings
 include:
 
-  non-white-space characters: -s "(\S+)"
-  alphanumerics and underscores: -s "(\w+)"
+  non-white-space characters: -s "\S+"
+  alphanumerics and underscores: -s "\w+"
   XML tags: -s "<([a-zA-Z_:][a-zA-Z_:.0-9-]*)[\s>]"
 ''',
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
