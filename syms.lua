@@ -24,7 +24,6 @@ Options:
 local std = require "std"
 rex_posix = require "rex_posix"
 
-
 -- Parse command-line args
 os.setlocale ("")
 local OptionParser = require "std.optparse"
