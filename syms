@@ -6,6 +6,8 @@ import locale
 import regex
 import fileinput
 
+VERSION = '1.0'
+
 # Command-line arguments
 parser = argparse.ArgumentParser(description='List symbols in input.',
                                  epilog='''
@@ -20,7 +22,7 @@ include:
 parser.add_argument('-s', '--symbol', metavar='REGEXP', default=r'\p{L}+',
                     help='symbols are given by REGEXP')
 parser.add_argument('-V', '--version', action='version',
-                    version='%(prog)s 0.91 (16 Sep 2022) by Reuben Thomas <rrt@sc3d.org>')
+                    version=f'%(prog)s {VERSION} (17 Sep 2022) by Reuben Thomas <rrt@sc3d.org>')
 parser.add_argument('file', metavar='FILE', nargs='*')
 
 args = parser.parse_args()

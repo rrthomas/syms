@@ -1,9 +1,0 @@
-syms
-====
-
-`syms' lists symbols in its input (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags).
-
-unique symbols, sorted lexically: syms "$@" | sort | uniq
-number of unique symbols: syms "$@" | sort | uniq | wc -l
-unique symbols, sorted by frequency: syms "$@" | sort | uniq -c | sort -n -k 2
-unique lines (like uniq, but not just adjacent lines): syms -s "^(.*)$" "$@"

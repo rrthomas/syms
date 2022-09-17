@@ -1,0 +1,14 @@
+# syms
+
+`syms` lists symbols in its input (where "symbol" can be defined flexibly enough to be words, identifiers or XML tags).
+
+syms is distributed under the terms of the GNU General Public License; either
+version 3 of the License, or (at your option), any later version. See the
+file COPYING for more details.
+
+## Usage examples
+
+Unique symbols, sorted lexically: `syms "$@" | sort | uniq`  
+Number of unique symbols: `syms "$@" | sort | uniq | wc -l`  
+Unique symbols, sorted by frequency: `syms "$@" | sort | uniq -c | sort -n -k 2`  
+Unique lines (like uniq, but not just adjacent lines): `syms -s "^(.*)$" "$@"`  
