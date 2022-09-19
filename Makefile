@@ -6,6 +6,7 @@ pg100.txt:
 	wget https://www.gutenberg.org/ebooks/100.txt.utf-8 -O $@
 
 check: pg100.txt syms
+	mypy syms
 	time ./syms pg100.txt >/dev/null
 
 release:
