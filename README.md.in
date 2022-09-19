@@ -10,5 +10,5 @@ file COPYING for more details.
 
 Unique symbols, sorted lexically: `syms "$@" | sort | uniq`  
 Number of unique symbols: `syms "$@" | sort | uniq | wc -l`  
-Unique symbols, sorted by frequency: `syms "$@" | sort | uniq -c | sort -n -k 2`  
+Unique symbols, sorted by frequency: `syms "$@" | sort | uniq -c | sort -n`  
 Unique lines (like uniq, but not just adjacent lines): `syms -s "^(.*)$" "$@"`  
